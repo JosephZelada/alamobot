@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+    <property name="LOG_FILE" value="logs/application.log"/>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProfile name="cloud">
+        <springProperty name="APP_NAME" source="vcap.application.name"/>
+        <springProperty name="INSTANCE_INDEX" source="vcap.application.instance_index"/>
+        <springProperty name="SPACE_NAME" source="vcap.application.space_name"/>
+
+        <!-- Splunk specific logging patterns to replace all but the last newlines in the message (%m) & exceptions (%wex)
+             with a token (Unicode Line Separator, \u2028) which is transformed on the Splunk indexer back to \n -->
+        <property name="CONSOLE_LOG_PATTERN"
+                  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(app=${APP_NAME}) %clr(space=${SPACE_NAME}) %clr(instance=${INSTANCE_INDEX}) %clr(${PID:- }){magenta} %clr(---){faint} %mdc %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %replace(%m%n%wex){'\n(?=.*\n)','\\\\u2028'}%nopex"/>
+        <property name="FILE_LOG_PATTERN"
+                  value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p app=${APP_NAME} space=${SPACE_NAME} instance=${INSTANCE_INDEX} ${PID:- } --- %mdc --- [%t] %-40.40logger{39} : %replace(%m%n%wex){'\n(?=.*\n)','\\\\u2028'}%nopex"/>
+    </springProfile>
+
+    <springProfile name="!cloud">
+        <property name="CONSOLE_LOG_PATTERN"
+                  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %mdc %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wex"/>
+        <property name="FILE_LOG_PATTERN"
+                  value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:- } --- %mdc --- [%t] %-40.40logger{39} : %m%n%wex"/>
+    </springProfile>
+
+    <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- LUM-13709 We are using the default dozer global properties -->
+    <logger name="org.dozer.config.GlobalSettings" level="ERROR"/>
+
+    <logger name="org.cloudfoundry.reconfiguration.org.springframework.cloud.AbstractCloudConnector" level="ERROR"/>
+    <logger name="org.springframework.cloud.AbstractCloudConnector" level="ERROR"/>
+
+</included>
