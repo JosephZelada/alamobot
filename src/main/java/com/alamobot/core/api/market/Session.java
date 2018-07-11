@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @Builder
@@ -14,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class Session {
     private int SessionId;
     private String SessionStatus;
-    private String SessionDateTime;
+    private LocalDateTime SessionDateTime;
     private String SessionType;
     private int SeatsLeft;
 }

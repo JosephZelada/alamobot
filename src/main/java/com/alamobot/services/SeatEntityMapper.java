@@ -17,6 +17,7 @@ public class SeatEntityMapper {
 
     Random random = new Random();
 
+    //TODO: Streamify this, refactor and uncle bob this. Get it contained within one screen
     List<SeatEntity> dataToSeatEntity(DataContainer dataContainer, int sessionId) {
         ArrayList<SeatEntity> seatEntities = new ArrayList<>();
         for(Area area: dataContainer.getData().getSeatingData().getAreas()) {

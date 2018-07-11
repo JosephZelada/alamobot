@@ -39,6 +39,7 @@ public class SeatService {
         return restTemplate;
     }
 
+    //Just to hack the servers to let them think I'm coming from Chrome
     private HttpEntity<String> initHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("User-Agent", "chrome");
@@ -57,6 +58,7 @@ public class SeatService {
                     DataContainer.class
             );
         } catch (Exception e) {
+            //TODO: Log exception if it ever happens
             return new ArrayList<>();
         }
 

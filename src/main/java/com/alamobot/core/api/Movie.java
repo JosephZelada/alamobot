@@ -11,15 +11,19 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @EqualsAndHashCode(of = "sessionId")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+
+//TODO: Should this just be an entity for now?
 public class Movie {
     private int sessionId;
-    private String sessionDateTime;
+    private LocalDateTime sessionDateTime;
     private String sessionStatus;
     private MarketEntity market;
     private CinemaEntity cinema;

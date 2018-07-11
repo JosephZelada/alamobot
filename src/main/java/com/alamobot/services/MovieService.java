@@ -45,21 +45,24 @@ public class MovieService {
 
     @Getter
     @Setter
-    private LocalDateTime latestOnSaleDateSeen = LocalDateTime.MIN;
+    private LocalDateTime highWatermarkDate = LocalDateTime.MIN;
 
-    List<MovieEntity> getWatchedMovieListFromDatabase() {
-        List<MovieEntity> movieEntities = new ArrayList<>();
-        movieRepository.findByWatched(true).forEach(movieEntities::add);
-        return movieEntities;
-    }
 
     void getMovieListFromServerAndPersist() {
         getMovieListFromServerAndPersistForMarket("0000");
     }
 
+    List<MovieEntity> getWatchedMovieListFromDatabase() {
+
+        //TODO: Find a way to use JPA to do findAllByWatched, just return that
+        List<MovieEntity> movieEntities = new ArrayList<>();
+        movieRepository.findByWatched(true).forEach(movieEntities::add);
+        return movieEntities;
+    }
+
     private void getMovieListFromServerAndPersistForMarket(String marketId) {
         List<Movie> movieEntities = getMovieListFromServer(marketId);
-        log.info("Found " + movieEntities.size() + " relevant films in the " + marketId + " market. Attempting to persist. The current high watermark date for on sale is " + latestOnSaleDateSeen);
+        log.info("Found " + movieEntities.size() + " relevant films in the " + marketId + " market. Attempting to persist. The current high watermark date for on sale is " + highWatermarkDate);
         persistMovieList(movieEntities);
     }
 
@@ -77,9 +80,12 @@ public class MovieService {
         return movieEntityMapper.marketToMovieList(marketContainers);
     }
 
+    //TODO: Wrap this in a transactional tag to make sure we're not in an incomplete state
     private void persistMovieList(List<Movie> movies) {
+        //TODO: Extract all helper objects before iternation. Persist once
+        //Set<Cinema> cinemas = extractCinemasFromMovieList(movies);
+        //persistHelperObjects(movie);
         for(Movie movie: movies) {
-            persistHelperObjects(movie);
             MovieEntity movieEntity = convertToMovieEntity(movie);
             movieRepository.save(movieEntity);
         }
@@ -94,6 +100,7 @@ public class MovieService {
     }
 
     private void persistHelperObjects(Movie movie) {
+        //TODO: Do a JPA upsert rather than a save, see if save is an upsert
         marketRepository.save(movie.getMarket());
         cinemaRepository.save(movie.getCinema());
         filmRepository.save(movie.getFilm());

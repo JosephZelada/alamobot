@@ -34,4 +34,5 @@ public class AlamoScheduler {
         }
         log.info("Grabbed seat list from Alamo server and persisted");
     }
+    //Cleanup database
 }

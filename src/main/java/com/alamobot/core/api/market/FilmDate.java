@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Date {
+public class FilmDate {
     private String DateId;
     private String Date;
     private List<Cinema> Cinemas;

@@ -17,5 +17,5 @@ public class Market {
     private String MarketId;
     private String MarketName;
     private String MarketSlug;
-    private List<Date> Dates;
+    private List<FilmDate> Dates;
 }
