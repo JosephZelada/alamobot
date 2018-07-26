@@ -1,14 +1,12 @@
 package com.alamobot.services;
 
 import com.alamobot.core.api.Movie;
-import com.alamobot.core.api.market.Cinema;
-import com.alamobot.core.api.market.Film;
-import com.alamobot.core.api.market.FilmDate;
-import com.alamobot.core.api.market.Format;
-import com.alamobot.core.api.market.Market;
-import com.alamobot.core.api.market.MarketContainer;
-import com.alamobot.core.api.market.Series;
-import com.alamobot.core.api.market.Session;
+import com.alamobot.core.api.showtime.Cinema;
+import com.alamobot.core.api.showtime.Film;
+import com.alamobot.core.api.showtime.Format;
+import com.alamobot.core.api.showtime.Market;
+import com.alamobot.core.api.showtime.MarketContainer;
+import com.alamobot.core.api.showtime.Session;
 import com.alamobot.core.domain.CinemaEntity;
 import com.alamobot.core.domain.FilmEntity;
 import com.alamobot.core.domain.FormatEntity;
@@ -18,8 +16,6 @@ import com.alamobot.core.domain.MovieEntity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,88 +28,52 @@ class MovieEntityMapper {
         this.movieService = movieService;
     }
 
-
-
-    List<Movie> marketToMovieListStreams(MarketContainer marketContainer) {
+    List<Movie> marketToMovieList(MarketContainer marketContainer) {
         Market market = marketContainer.getMarket();
-        Session returnedSession = new Session();
-        returnedSession.setSessionDateTime(movieService.getHighWatermarkDate());
-        Comparator<Session> sessionComparator = Comparator.comparing(Session::getSessionDateTime);
-        Session tempSession = market.getDates().stream()
-                .flatMap(filmDate -> filmDate.getCinemas().stream().map(
-                        cinema -> cinema.getFilms().stream().map(
-                                film -> film.getSeries().stream().map(
-                                        series -> series.getFormats().stream().map(
-                                                format -> format.getSessions().stream()
-                                                        .filter(session -> !movieDateTimeIsBeforeCurrentHighWatermarkDate(session))
-                                                        .filter(session -> doesHighWatermarkDateNeedToBeUpdated(session.getSessionDateTime(), movieService.getHighWatermarkDate(), film.getFilmName(), session.getSessionStatus()))
-                                                        .max(sessionComparator)
-                                                        .orElse(returnedSession)
-                                        ).max(sessionComparator)
-                                                .orElse(returnedSession)
-                                ).max(sessionComparator)
-                                        .orElse(returnedSession)
-                        ).max(sessionComparator)
-                                .orElse(returnedSession)
-                )).max(sessionComparator)
-                .orElse(returnedSession);
-        LocalDateTime localHighWatermarkDate = tempSession.getSessionDateTime();
+        String marketId = market.getMarketId();
+        LocalDateTime highWatermarkDate = movieService.getHighWatermarkDateMap().get(market.getMarketId());
         List<Movie> movieList = market.getDates().stream()
-                .flatMap(filmDate -> filmDate.getCinemas().stream().map(
-                        cinema -> cinema.getFilms().stream().map(
-                                film -> film.getSeries().stream().map(
-                                        series -> series.getFormats().stream().map(
-                                                format -> format.getSessions().stream()
-                                                        .filter(session -> !movieDateTimeIsBeforeCurrentHighWatermarkDate(session))
+                .filter(filmDate -> !LocalDate.parse(filmDate.getDateId(), formatter).atStartOfDay().isBefore(highWatermarkDate))
+                .flatMap(filmDate -> filmDate.getCinemas().stream()
+                        .map(cinema -> cinema.getFilms().stream()
+                                .map(film -> film.getSeries().stream()
+                                        .map(series -> series.getFormats().stream()
+                                                .map(format -> format.getSessions().stream()
+                                                        .filter(session -> !movieDateTimeIsBeforeCurrentHighWatermarkDate(session.getSessionDateTime(), marketId))
                                                         .map(session -> combineToCreateMovie(session, market, cinema, film, format))
                                                         .collect(Collectors.toList())
-                                        )
+                                                )
                                                 .flatMap(List::stream)
                                                 .collect(Collectors.toList())
-                                )
+                                        )
                                         .flatMap(List::stream)
                                         .collect(Collectors.toList())
-                        )
+                                )
                                 .flatMap(List::stream)
                                 .collect(Collectors.toList())
-                ))
+                        ))
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
-        movieService.setHighWatermarkDate(localHighWatermarkDate);
+        updateMovieServiceWithNewHighWatermarkDate(movieList, marketId);
         return movieList;
     }
 
-    List<Movie> marketToMovieList(MarketContainer marketContainer) {
-        ArrayList<Movie> movies = new ArrayList<>();
-        Market market = marketContainer.getMarket();
-        LocalDateTime localHighWatermarkDate = movieService.getHighWatermarkDate();
-        for(FilmDate filmDate : market.getDates()) {
-            LocalDate currentDate = LocalDate.parse(filmDate.getDateId(), formatter);
-            if(currentDate.atStartOfDay().isBefore(localHighWatermarkDate)) {
-                continue;
-            }
-            for(Cinema cinema: filmDate.getCinemas()) {
-                for(Film film: cinema.getFilms()) {
-                    for(Series series: film.getSeries()) {
-                        for(Format format: series.getFormats()) {
-                            for(Session session: format.getSessions()) {
-                                LocalDateTime movieDateTime = session.getSessionDateTime();
-                                //TODO: Filter with a stream, maybe look at optimus-prime for examples
-                                if(movieDateTime.isBefore(movieService.getHighWatermarkDate())) {
-                                    continue;
-                                }
-                                if(doesHighWatermarkDateNeedToBeUpdated(movieDateTime, localHighWatermarkDate, film.getFilmName(), session.getSessionStatus())) {
-                                    localHighWatermarkDate = movieDateTime;
-                                }
-                                movies.add(combineToCreateMovie(session, market, cinema, film, format));
-                            }
-                        }
-                    }
-                }
+    //TODO: Maybe try to replace for loop with streams, kinda difficult
+    private void updateMovieServiceWithNewHighWatermarkDate(List<Movie> movieList, String marketId) {
+        LocalDateTime localHighWatermarkDate = movieService.getHighWatermarkDateMap().get(marketId);
+        for(Movie movie: movieList) {
+            if(doesHighWatermarkDateNeedToBeUpdated(movie.getSessionDateTime(), localHighWatermarkDate, movie.getFilm().getName(), movie.getSessionStatus())) {
+                localHighWatermarkDate = movie.getSessionDateTime();
             }
         }
-        movieService.setHighWatermarkDate(localHighWatermarkDate);
-        return movies;
+//        LocalDateTime localHighWatermarkDate = movieList.stream()
+//                .filter(movie -> !movieDateTimeIsBeforeCurrentHighWatermarkDate(movie.getSessionDateTime()))
+//                .filter(movie -> doesHighWatermarkDateNeedToBeUpdated(movie.getSessionDateTime(), movieService.getHighWatermarkDate(), movie.getFilm().getName(), movie.getSessionStatus()))
+//                .max(Comparator.comparing(Movie::getSessionDateTime))
+//                .orElse(Movie.builder().sessionDateTime(movieService.getHighWatermarkDate()).build())
+//                .getSessionDateTime();
+
+        movieService.getHighWatermarkDateMap().put(marketId, localHighWatermarkDate);
     }
 
     MovieEntity movieToMovieEntity(Movie movie) {
@@ -129,24 +89,13 @@ class MovieEntityMapper {
                 .build();
     }
 
-    private boolean movieDateTimeIsBeforeCurrentHighWatermarkDate(Session session) {
-        LocalDateTime movieDateTime = session.getSessionDateTime();
-        if(movieDateTime.isBefore(movieService.getHighWatermarkDate())) {
-            return true;
-        }
-        return false;
+    private boolean movieDateTimeIsBeforeCurrentHighWatermarkDate(LocalDateTime movieDateTime, String marketId) {
+        return movieDateTime.isBefore(movieService.getHighWatermarkDateMap().get(marketId));
     }
 
     private boolean doesHighWatermarkDateNeedToBeUpdated(LocalDateTime movieDateTime, LocalDateTime localHighWatermarkDate, String filmName, String sessionStatus) {
         boolean filmTicketsOnSale = sessionStatus.equals(ON_SALE_TAG);
-        if(shouldFilmUpdateLatestOnSaleDateSeen(
-                movieDateTime,
-                localHighWatermarkDate,
-                isFilmSpecialEvent(filmName)
-        ) && filmTicketsOnSale){
-            return true;
-        }
-        return false;
+        return shouldFilmUpdateLatestOnSaleDateSeen(movieDateTime, localHighWatermarkDate, isFilmSpecialEvent(filmName)) && filmTicketsOnSale;
     }
 
     private Movie combineToCreateMovie(Session session, Market market, Cinema cinema, Film film, Format format) {
@@ -154,9 +103,21 @@ class MovieEntityMapper {
                 .sessionId(session.getSessionId())
                 .sessionDateTime(session.getSessionDateTime())
                 .sessionStatus(session.getSessionStatus())
-                .market(new MarketEntity(market.getMarketId(), market.getMarketName(), market.getMarketSlug()))
-                .cinema(new CinemaEntity(cinema.getCinemaId(), cinema.getCinemaName(), cinema.getCinemaSlug()))
-                .film(new FilmEntity(film.getFilmId(), film.getFilmName(), film.getFilmSlug()))
+                .market(MarketEntity.builder()
+                                .id(market.getMarketId())
+                                .name(market.getMarketName())
+                                .slug(market.getMarketSlug())
+                                .build())
+                .cinema(CinemaEntity.builder()
+                                .id(cinema.getCinemaId())
+                                .name(cinema.getCinemaName())
+                                .slug(cinema.getCinemaSlug())
+                                .build())
+                .film(FilmEntity.builder()
+                              .id(film.getFilmId())
+                              .name(film.getFilmName())
+                              .slug(film.getFilmSlug())
+                              .build())
                 .format(new FormatEntity(format.getFormatId(), format.getFormatName()))
                 .seatsLeft(session.getSeatsLeft())
                 .build();

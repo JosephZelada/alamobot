@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MarketContainer {
-    private Market Market;
+public class MarketSummary {
+    private String id;
+    private String marketStatus;
+    private String name;
+    private String slug;
 }

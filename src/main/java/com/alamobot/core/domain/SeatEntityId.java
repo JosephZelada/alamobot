@@ -14,7 +14,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Embeddable
 public class SeatEntityId implements Serializable {
-    private int sessionId;
-    private int rowIndex;
-    private int columnIndex;
+    private Integer sessionId;
+    private Integer rowIndex;
+    private Integer columnIndex;
 }

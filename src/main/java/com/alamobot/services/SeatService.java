@@ -26,8 +26,7 @@ public class SeatService {
 
     private SeatEntityMapper seatEntityMapper = new SeatEntityMapper();
     private RestTemplate restTemplate = initRestTemplate();
-
-    HttpEntity<String> headersEntity = initHttpHeaders();
+    private HttpEntity<String> headersEntity = initHttpHeaders();
 
     public void getSeatsFromServerAndPersist(MovieEntity movieEntity) {
         List<SeatEntity> seatEntities = getSeatsFromServerForMovie(movieEntity);
@@ -73,10 +72,10 @@ public class SeatService {
     }
 
     private void setSeatToTaken(SeatEntity seatEntity) {
-        //Must add fields to seatEntity, make sure not to override them. Do like you did with the movieEntity.watched query
+        //TODO: Must add fields to seatEntity, make sure not to override them. Do like you did with the movieEntity.watched query
     }
 
     private void setSeatToPaid(SeatEntity seatEntity) {
-        //Must add fields to seatEntity, make sure not to override them. Do like you did with the movieEntity.watched query
+        //TODO: Must add fields to seatEntity, make sure not to override them. Do like you did with the movieEntity.watched query
     }
 }

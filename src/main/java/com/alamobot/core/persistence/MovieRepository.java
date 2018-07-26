@@ -6,5 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 public interface MovieRepository extends CrudRepository<MovieEntity, Integer> {
-    List<MovieEntity> findByWatched(boolean watched);
+    List<MovieEntity> findAllByWatched(boolean watched);
+
+    List<MovieEntity> findAllByFilmId(String filmId);
 }

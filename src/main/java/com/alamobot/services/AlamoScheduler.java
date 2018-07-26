@@ -20,19 +20,38 @@ public class AlamoScheduler {
     @Autowired
     SeatService seatService;
 
+    @Autowired
+    MarketService marketService;
+
+    @Autowired
+    CleanupService cleanupService;
+
     @Scheduled(fixedRate = 30000)
     public void getMoviesFromAlamoAndPersist() {
-        log.info("Grabbed movie list from Alamo server and persisted");
+        log.debug("Grabbed movie list from Alamo server and persisted");
         movieService.getMovieListFromServerAndPersist();
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 30000)
+    public void getMarketsFromAlamoAndPersist() {
+        log.debug("Grabbed market list from Alamo server and persisted");
+        marketService.getMarketListFromServerAndPersist();
+    }
+
+    @Scheduled(fixedRate = 30000)
     public void getSeatsFromAlamoAndPersist() {
         List<MovieEntity> movieEntities = movieService.getWatchedMovieListFromDatabase();
         for(MovieEntity movieEntity: movieEntities) {
-            seatService.getSeatsFromServerAndPersist(movieEntity);
+            if(movieEntity.getWatched()) {
+                seatService.getSeatsFromServerAndPersist(movieEntity);
+            }
         }
-        log.info("Grabbed seat list from Alamo server and persisted");
+        log.debug("Grabbed seat list from Alamo server and persisted");
     }
-    //Cleanup database
+
+    @Scheduled(fixedRate = 30000)
+    public void cleanUpOldShowtimes() {
+        log.debug("Cleaning up database of old showtimes, seats and movies");
+        cleanupService.cleanUpPastShowtimeData();
+    }
 }

@@ -18,4 +18,5 @@ public class FilmEntity {
     private String id;
     private String name;
     private String slug;
+    private Boolean watched;
 }

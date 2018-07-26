@@ -1,12 +1,16 @@
 package com.alamobot.services;
 
-import com.alamobot.core.persistence.CinemaRepository;
+import com.alamobot.core.domain.FilmEntity;
+import com.alamobot.core.domain.MovieEntity;
 import com.alamobot.core.persistence.FilmRepository;
-import com.alamobot.core.persistence.FormatRepository;
-import com.alamobot.core.persistence.MarketRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import com.alamobot.core.persistence.SeatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CleanupService {
     @Autowired
@@ -16,20 +20,36 @@ public class CleanupService {
     private MovieRepository movieRepository;
 
     @Autowired
-    private MarketRepository marketRepository;
-
-    @Autowired
-    private CinemaRepository cinemaRepository;
-
-    @Autowired
     private FilmRepository filmRepository;
 
-    @Autowired
-    private FormatRepository formatRepository;
-
+    @Transactional
     public void cleanUpPastShowtimeData() {
-        //Clean up all seat entries for past showtimes that have been paid
-        //Clean up all movie entries with showtimes in the past that have all been paid in full
-        //Clean up all film entries with no remaining movie entries
+        cleanUpMovies();
+        cleanUpFilms();
+    }
+
+    private void cleanUpMovies() {
+        List<MovieEntity> movieEntitiesToDeleteList = new ArrayList<>();
+        for(MovieEntity movieEntity: movieRepository.findAll()) {
+            if(movieEntity.getSessionDateTime().isBefore(LocalDateTime.now())) {
+                cleanUpSeats(movieEntity.getSessionId());
+                movieEntitiesToDeleteList.add(movieEntity);
+            }
+        }
+        movieRepository.deleteAll(movieEntitiesToDeleteList);
+    }
+
+    private void cleanUpFilms() {
+        List<FilmEntity> filmEntitiesToDeleteList = new ArrayList<>();
+        for(FilmEntity filmEntity: filmRepository.findAll()) {
+            if(movieRepository.findAllByFilmId(filmEntity.getId()).size() == 0){
+                filmEntitiesToDeleteList.add(filmEntity);
+            }
+        }
+        filmRepository.deleteAll(filmEntitiesToDeleteList);
+    }
+
+    private void cleanUpSeats(int movieSessionId) {
+        seatRepository.deleteBySessionId(movieSessionId);
     }
 }

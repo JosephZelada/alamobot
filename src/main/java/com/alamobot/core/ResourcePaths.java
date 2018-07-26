@@ -1,0 +1,8 @@
+package com.alamobot.core;
+
+public class ResourcePaths {
+    public static final String MOVIE_PATH = "/movie";
+    public static final String FILM_PATH = "/film";
+    public static final String MARKET_PATH = "/market";
+    public static final String CINEMA_PATH = "/cinema";
+}

@@ -15,6 +15,7 @@ create table market_entity (
   id varchar(255) NOT NULL,
   name varchar(255),
   slug varchar(255),
+  watched boolean NOT NULL,
   primary key (id)
 );
 
@@ -22,6 +23,7 @@ create table cinema_entity (
   id varchar(255) NOT NULL,
   name varchar(255),
   slug varchar(255),
+  watched boolean NOT NULL,
   primary key (id)
 );
 
@@ -29,6 +31,7 @@ create table film_entity (
   id varchar(255) NOT NULL,
   name varchar(255),
   slug varchar(255),
+  watched boolean NOT NULL,
   primary key (id)
 );
 
@@ -39,6 +42,7 @@ create table format_entity (
 );
 
 create table seat_entity (
+  id varchar(255) NOT NULL,
   session_id BIGINT NOT NULL,
   name varchar(255),
   row_number SMALLINT,
@@ -60,6 +64,5 @@ create table seat_entity (
   table_style VARCHAR(255),
   warning_message VARCHAR(255),
   warning_code SMALLINT,
-  PRIMARY KEY(session_id, row_index, column_index),
   UNIQUE (session_id, row_index, column_index)
 );

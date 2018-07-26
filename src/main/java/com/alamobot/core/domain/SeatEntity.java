@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 @Data
 @Builder
@@ -14,8 +14,11 @@ import javax.persistence.Entity;
 @NoArgsConstructor
 @Entity
 public class SeatEntity {
-    @EmbeddedId
-    private SeatEntityId seatEntityId;
+    @Id
+    private String id;
+    private Integer sessionId;
+    private Integer rowIndex;
+    private Integer columnIndex;
     private String name;
     private int rowNumber;
     private int seatId;
