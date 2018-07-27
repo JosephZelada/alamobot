@@ -1,4 +1,4 @@
-package com.alamobot.core.api.seats;
+package com.alamobot.core.api.consume.showtime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -6,16 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Warning {
-    private int category;
-    private int code;
-    private String description;
-//    "category": 107,
-//            "code": 101,
-//            "description": "ADA Accessible Seating"
+public class FilmDate {
+    private String DateId;
+    private String Date;
+    private List<Cinema> Cinemas;
 }

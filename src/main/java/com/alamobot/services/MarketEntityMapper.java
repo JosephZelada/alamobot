@@ -1,7 +1,7 @@
 package com.alamobot.services;
 
-import com.alamobot.core.api.market.MarketData;
-import com.alamobot.core.api.market.MarketDataContainer;
+import com.alamobot.core.api.consume.market.MarketData;
+import com.alamobot.core.api.consume.market.MarketDataContainer;
 import com.alamobot.core.domain.MarketEntity;
 
 import java.util.List;

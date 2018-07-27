@@ -1,4 +1,4 @@
-package com.alamobot.core.api.market;
+package com.alamobot.core.api.consume.showtime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MarketSummary {
-    private String id;
-    private String marketStatus;
-    private String name;
-    private String slug;
+public class MarketContainer {
+    private Market Market;
 }

@@ -1,12 +1,12 @@
 package com.alamobot.services;
 
-import com.alamobot.core.api.Movie;
-import com.alamobot.core.api.showtime.Cinema;
-import com.alamobot.core.api.showtime.Film;
-import com.alamobot.core.api.showtime.Format;
-import com.alamobot.core.api.showtime.Market;
-import com.alamobot.core.api.showtime.MarketContainer;
-import com.alamobot.core.api.showtime.Session;
+import com.alamobot.core.api.consume.Movie;
+import com.alamobot.core.api.consume.showtime.Cinema;
+import com.alamobot.core.api.consume.showtime.Film;
+import com.alamobot.core.api.consume.showtime.Format;
+import com.alamobot.core.api.consume.showtime.Market;
+import com.alamobot.core.api.consume.showtime.MarketContainer;
+import com.alamobot.core.api.consume.showtime.Session;
 import com.alamobot.core.domain.CinemaEntity;
 import com.alamobot.core.domain.FilmEntity;
 import com.alamobot.core.domain.FormatEntity;

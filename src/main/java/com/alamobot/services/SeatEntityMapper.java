@@ -1,11 +1,11 @@
 package com.alamobot.services;
 
 
-import com.alamobot.core.api.seats.Area;
-import com.alamobot.core.api.seats.DataContainer;
-import com.alamobot.core.api.seats.Row;
-import com.alamobot.core.api.seats.Seat;
-import com.alamobot.core.api.seats.Warning;
+import com.alamobot.core.api.consume.seats.Area;
+import com.alamobot.core.api.consume.seats.DataContainer;
+import com.alamobot.core.api.consume.seats.Row;
+import com.alamobot.core.api.consume.seats.Seat;
+import com.alamobot.core.api.consume.seats.Warning;
 import com.alamobot.core.domain.SeatEntity;
 
 import java.util.ArrayList;

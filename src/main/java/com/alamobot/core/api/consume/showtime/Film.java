@@ -1,4 +1,4 @@
-package com.alamobot.core.api.showtime;
+package com.alamobot.core.api.consume.showtime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -13,6 +13,10 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Series {
-    private List<Format> Formats;
+public class Film {
+    private String FilmId;
+    private String FilmName;
+    private String FilmSlug;
+    private int FilmYear;
+    private List<Series> Series;
 }

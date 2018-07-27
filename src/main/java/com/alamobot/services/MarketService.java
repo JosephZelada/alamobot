@@ -1,7 +1,7 @@
 package com.alamobot.services;
 
 import com.alamobot.core.AlamoUrls;
-import com.alamobot.core.api.market.MarketDataContainer;
+import com.alamobot.core.api.consume.market.MarketDataContainer;
 import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.persistence.MarketRepository;
 import org.springframework.beans.factory.annotation.Autowired;

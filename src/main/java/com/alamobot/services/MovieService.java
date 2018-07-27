@@ -1,8 +1,8 @@
 package com.alamobot.services;
 
 import com.alamobot.core.AlamoUrls;
-import com.alamobot.core.api.Movie;
-import com.alamobot.core.api.showtime.MarketContainer;
+import com.alamobot.core.api.consume.Movie;
+import com.alamobot.core.api.consume.showtime.MarketContainer;
 import com.alamobot.core.domain.CinemaEntity;
 import com.alamobot.core.domain.FilmEntity;
 import com.alamobot.core.domain.FormatEntity;

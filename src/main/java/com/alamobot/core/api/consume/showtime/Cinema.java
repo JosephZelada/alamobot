@@ -1,4 +1,4 @@
-package com.alamobot.core.api.showtime;
+package com.alamobot.core.api.consume.showtime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -13,9 +13,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Format {
-    private String FormatId;
-    private String FormatName;
-    private List<Session> Sessions;
-
+public class Cinema {
+    private String CinemaId;
+    private String CinemaName;
+    private String CinemaSlug;
+    private List<Film> Films;
 }

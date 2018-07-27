@@ -1,4 +1,4 @@
-package com.alamobot.core.api.showtime;
+package com.alamobot.core.api.consume.market;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -8,14 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Cinema {
-    private String CinemaId;
-    private String CinemaName;
-    private String CinemaSlug;
-    private List<Film> Films;
+public class MarketData {
+    private List<MarketSummary> marketSummaries;
 }

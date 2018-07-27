@@ -1,4 +1,4 @@
-package com.alamobot.core.api;
+package com.alamobot.core.api.consume;
 
 import com.alamobot.core.domain.CinemaEntity;
 import com.alamobot.core.domain.FilmEntity;

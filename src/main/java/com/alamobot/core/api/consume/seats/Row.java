@@ -1,19 +1,23 @@
-package com.alamobot.core.api.seats;
+package com.alamobot.core.api.consume.seats;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@lombok.Data
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SeatingData {
-    private int screenNumber;
-    private List<Area> areas;
-
+public class Row {
+    private int areaIndex;
+    private int rowIndex;
+    private String name;
+    private int rowNumber;
+    private boolean isEmpty;
+    private List<Seat> seats;
 }

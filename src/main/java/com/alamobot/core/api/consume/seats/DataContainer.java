@@ -1,10 +1,9 @@
-package com.alamobot.core.api.seats;
+package com.alamobot.core.api.consume.seats;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DataSub {
-    @Getter
-    private SeatingData seatingData;
+public class DataContainer {
+    private DataSub data;
 }
