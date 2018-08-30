@@ -21,9 +21,11 @@ public class FilmResource {
     @Autowired
     FilmService filmService;
 
+    @CrossOrigin
     @PostMapping("/{film_id}")
-    public void markCinemaAsViewed(@PathVariable("film_id") String filmId) {
+    public Boolean markFilmaAsViewed(@PathVariable("film_id") String filmId) {
         filmService.markFilmAsViewed(filmId);
+        return true;
     }
 
     @CrossOrigin

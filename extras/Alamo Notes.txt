@@ -1,3 +1,21 @@
+Off The Grid Checklist:
+1. Create a rudimentary UI to pick seats
+    a. Map DB seat map to UI
+    b. Display whether the seat is free or who has taken it
+2. Add options to pick which movies to watch for seats
+3. Add a list view for seats with the following info
+    a. Whose seat (can be refunded, manual process for now)
+    b. What is their seating status - Confirmed, Maybe, Empty. Should be a drop-down
+    b. Have they paid (gets highlighted in red after session showtime passes if they haven't paid)
+    c. Have they been reminded of payment
+    d. What is their seat number
+4. Able to buy seats from within app
+5. Mark sessions under a watched film as watched, at least for the first day's showing if possible
+
+Maybe look into reactjs for the seatmap
+
+
+
 GET:
 
 https://drafthouse.com/s/mother/v1/page/showtime/showtime-by-session/<CinemaId>/<SessionId>
