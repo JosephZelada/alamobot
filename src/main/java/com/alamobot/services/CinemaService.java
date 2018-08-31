@@ -12,13 +12,13 @@ public class CinemaService {
     @Autowired
     private CinemaRepository cinemaRepository;
 
-    public void markCinemaAsViewed(String cinemaId) {
+    public void markCinemaAsViewed(String cinemaId, Boolean watched) {
         Optional<CinemaEntity> cinemaEntityOptional = cinemaRepository.findById(cinemaId);
         if(!cinemaEntityOptional.isPresent()) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         CinemaEntity cinemaEntity = cinemaEntityOptional.get();
-        cinemaEntity.setWatched(true);
+        cinemaEntity.setWatched(watched);
         cinemaRepository.save(cinemaEntity);
     }
 }

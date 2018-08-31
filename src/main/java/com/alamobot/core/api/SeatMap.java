@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.util.ArrayList;
 
 @Data
 @Builder
@@ -14,5 +14,5 @@ import java.util.Map;
 public class SeatMap {
     private String filmName;
     private Integer theaterNum;
-    private Map<Integer, Map<Integer, Seat>> seats;
+    private ArrayList<ArrayList<Seat>> seats;
 }

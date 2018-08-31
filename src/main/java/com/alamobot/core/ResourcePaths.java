@@ -6,4 +6,5 @@ public class ResourcePaths {
     public static final String MARKET_PATH = "/market";
     public static final String CINEMA_PATH = "/cinema";
     public static final String SEAT_PATH = "/seat";
+    public static final String PAYMENT_PATH = "/payment";
 }

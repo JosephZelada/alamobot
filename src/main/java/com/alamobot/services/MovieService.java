@@ -58,13 +58,13 @@ public class MovieService {
     @Setter
     private Map<String, LocalDateTime> highWatermarkDateMap = new HashMap<>();
 
-    public void markMovieAsViewed(int sessionId) {
+    public void markMovieAsViewed(int sessionId, Boolean watched) {
         Optional<MovieEntity> movieEntityOptional = movieRepository.findById(sessionId);
         if(!movieEntityOptional.isPresent()) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         MovieEntity movieEntity = movieEntityOptional.get();
-        movieEntity.setWatched(true);
+        movieEntity.setWatched(watched);
         movieRepository.save(movieEntity);
     }
 

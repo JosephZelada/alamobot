@@ -21,17 +21,24 @@ public class FilmService {
     @Autowired
     private MovieRepository movieRepository;
 
-    public void markFilmAsViewed(String filmId) {
+    public void markFilmAsViewed(String filmId, Boolean watched) {
         Optional<FilmEntity> filmEntityOptional = filmRepository.findById(filmId);
         if(!filmEntityOptional.isPresent()) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         FilmEntity filmEntity = filmEntityOptional.get();
-        filmEntity.setWatched(true);
+        filmEntity.setWatched(watched);
         filmRepository.save(filmEntity);
     }
 
     public List<FilmEntity> getAllFilms() {
+        Iterable<FilmEntity> source = filmRepository.findAll();
+        List<FilmEntity> target = new ArrayList<>();
+        source.forEach(target::add);
+        return target;
+    }
+
+    public List<FilmEntity> getAllFilmsForMarket(String marketId) {
         Iterable<FilmEntity> source = filmRepository.findAll();
         List<FilmEntity> target = new ArrayList<>();
         source.forEach(target::add);

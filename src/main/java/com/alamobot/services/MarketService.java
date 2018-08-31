@@ -5,18 +5,17 @@ import com.alamobot.core.api.consume.market.MarketDataContainer;
 import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.persistence.MarketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,19 +23,37 @@ import java.util.stream.Collectors;
 public class MarketService {
     @Autowired
     MarketRepository marketRepository;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private HttpEntity<String> headersEntity;
 
     private MarketEntityMapper marketEntityMapper = new MarketEntityMapper();
-    private RestTemplate restTemplate = initRestTemplate();
-    private HttpEntity<String> headersEntity = initHttpHeaders();
 
-    public void markMarketAsViewed(String marketId) {
+    public void markMarketAsViewed(String marketId, Boolean watched) {
         Optional<MarketEntity> marketEntityOptional = marketRepository.findById(marketId);
         if(!marketEntityOptional.isPresent()) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         MarketEntity marketEntity = marketEntityOptional.get();
-        marketEntity.setWatched(true);
+        marketEntity.setWatched(watched);
         marketRepository.save(marketEntity);
+    }
+
+    public Page<MarketEntity> getAllMarkets(String marketName, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
+        SearchCriteria criteria = buildSearchCriteria(marketName, sortBy, orderBy, pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
+        return marketRepository.findAllByNameContainingIgnoreCase(criteria.getName(), pageable);
+    }
+
+    private SearchCriteria buildSearchCriteria(String name, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
+        String sortByColumn = name == null || name.equals("") ? "watched": sortBy;
+        String orderByColumn = orderBy == null || !(orderBy.toUpperCase().equals("DESC") || orderBy.toUpperCase().equals("ASC")) ? "DESC" : orderBy.toUpperCase();
+        Sort sort = new Sort(Sort.Direction.fromString(orderByColumn), sortByColumn);
+        String searchByName = name == null ? "" : name;
+        int pageNumberInt = pageNumber == null ? 0 : pageNumber - 1;
+        int pageSizeInt = pageSize == null ? 10 : pageSize;
+        return new SearchCriteria(sort, searchByName, pageNumberInt, pageSizeInt);
     }
 
     void getMarketListFromServerAndPersist() {
@@ -69,17 +86,5 @@ public class MarketService {
                 );
         MarketDataContainer marketDataContainer = marketDataContainerResponse.getBody();
         return marketEntityMapper.marketDataToMarketEntityList(marketDataContainer);
-    }
-
-    private RestTemplate initRestTemplate() {
-        return new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
-    }
-
-    //Just to hack the servers to let them think I'm coming from Chrome
-    private HttpEntity<String> initHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "chrome");
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        return new HttpEntity<>("parameters", headers);
     }
 }

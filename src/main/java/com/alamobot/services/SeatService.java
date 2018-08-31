@@ -62,10 +62,10 @@ public class SeatService {
         FilmEntity filmEntity = filmEntityOptional.get();
         List<SeatEntity> seatEntityList = seatRepository.findAllBySessionId(sessionId);
 
-        SeatMap seatMap = SeatMap.builder().filmName(filmEntity.getName()).seats(new HashMap<>()).build();
+        SeatMap seatMap = SeatMap.builder().filmName(filmEntity.getName()).build();
         int maxRowIndex = 0;
         int maxColumnIndex = 0;
-        Map<Integer, Map<Integer, Seat>> seats = seatMap.getSeats();
+        Map<Integer, Map<Integer, Seat>> seats = new HashMap<>();
         for(SeatEntity seatEntity: seatEntityList) {
             if(!seats.containsKey(seatEntity.getRowIndex())) {
                 seats.put(seatEntity.getRowIndex(),new HashMap<>());
@@ -92,7 +92,10 @@ public class SeatService {
                 seats.put(n, new HashMap<>());
             }
         }
-        seatMap.setSeats(seats);
+        ArrayList<ArrayList<Seat>> seatssss = new ArrayList<>();
+        seats.keySet().forEach(rowNumber -> seatssss.add(rowNumber,new ArrayList<>(seats.get(rowNumber).values())));
+
+        seatMap.setSeats(seatssss);
 
         return seatMap;
     }

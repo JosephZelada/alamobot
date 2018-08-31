@@ -1,8 +1,10 @@
 package com.alamobot.services;
 
 import com.alamobot.core.domain.FilmEntity;
+import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.domain.MovieEntity;
 import com.alamobot.core.persistence.FilmRepository;
+import com.alamobot.core.persistence.MarketRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import com.alamobot.core.persistence.SeatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +24,19 @@ public class CleanupService {
     @Autowired
     private FilmRepository filmRepository;
 
+    @Autowired
+    private MarketRepository marketRepository;
+
     @Transactional
     public void cleanUpPastShowtimeData() {
+        cleanUpMarkets();
         cleanUpMovies();
         cleanUpFilms();
+    }
+
+    private void cleanUpMarkets() {
+        List<MarketEntity> marketEntitiesToCleanUp = marketRepository.findAllByWatched(false);
+        marketEntitiesToCleanUp.forEach(marketEntity -> cleanUpMoviesForMarket(marketEntity.getId()));
     }
 
     private void cleanUpMovies() {
@@ -35,6 +46,15 @@ public class CleanupService {
                 cleanUpSeats(movieEntity.getSessionId());
                 movieEntitiesToDeleteList.add(movieEntity);
             }
+        }
+        movieRepository.deleteAll(movieEntitiesToDeleteList);
+    }
+
+    private void cleanUpMoviesForMarket(String marketId) {
+        List<MovieEntity> movieEntitiesToDeleteList = new ArrayList<>();
+        for(MovieEntity movieEntity: movieRepository.findAllByMarketId(marketId)) {
+            cleanUpSeats(movieEntity.getSessionId());
+            movieEntitiesToDeleteList.add(movieEntity);
         }
         movieRepository.deleteAll(movieEntitiesToDeleteList);
     }

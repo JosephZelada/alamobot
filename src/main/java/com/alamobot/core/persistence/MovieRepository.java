@@ -9,4 +9,8 @@ public interface MovieRepository extends CrudRepository<MovieEntity, Integer> {
     List<MovieEntity> findAllByWatched(boolean watched);
 
     List<MovieEntity> findAllByFilmId(String filmId);
+
+    List<MovieEntity> findAllByMarketId(String marketId);
+
+    void deleteAllByMarketId(String marketId);
 }

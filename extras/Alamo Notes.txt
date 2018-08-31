@@ -60,7 +60,8 @@ userSessionId = "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(
         return n.toString(16)
     }
 )
-
+7aadeb3625ab42f0bd3a2c7b186173b8
+xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx
 
 CURL WORKFLOW TO BUY TICKETS:
 //Associate userSessionId with Victory account
