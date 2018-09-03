@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentDataContainer {
-    private PaymentData data;
+public class SeatClaimData {
+    private Order order;
 }

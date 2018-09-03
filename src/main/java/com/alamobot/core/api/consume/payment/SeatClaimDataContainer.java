@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentData {
-    private String authToken;
-    private Boolean loginSuccess;
+public class SeatClaimDataContainer {
+    private SeatClaimData data;
+    private AlamoError error;
 }

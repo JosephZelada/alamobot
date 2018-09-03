@@ -4,6 +4,7 @@ import com.alamobot.core.domain.MovieEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,19 +26,19 @@ public class AlamoScheduler {
     @Autowired
     CleanupService cleanupService;
 
-//    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 30000)
     public void getMoviesFromAlamoAndPersist() {
         log.debug("Grabbed movie list from Alamo server and persisted");
         movieService.getMovieListFromServerAndPersist();
     }
 
-//    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 30000)
     public void getMarketsFromAlamoAndPersist() {
         log.debug("Grabbed market list from Alamo server and persisted");
         marketService.getMarketListFromServerAndPersist();
     }
 
-//    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 30000)
     public void getSeatsFromAlamoAndPersist() {
         List<MovieEntity> movieEntities = movieService.getWatchedMovieListFromDatabase();
         for(MovieEntity movieEntity: movieEntities) {
@@ -48,7 +49,7 @@ public class AlamoScheduler {
         log.debug("Grabbed seat list from Alamo server and persisted");
     }
 
-//    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 30000)
     public void cleanUpOldShowtimes() {
         log.debug("Cleaning up database of old showtimes, seats and movies");
         cleanupService.cleanUpPastShowtimeData();

@@ -46,7 +46,7 @@ public class SeatService {
 
     public void getSeatsFromServerAndPersist(MovieEntity movieEntity) {
         List<SeatEntity> seatEntities = getSeatsFromServerForMovie(movieEntity);
-        persistSeatEntities(seatEntities);
+        persistSeatEntities(seatEntities, movieEntity.getSessionId());
     }
 
     public SeatMap getSeatsForSessionId(int sessionId) {
@@ -78,6 +78,8 @@ public class SeatService {
                             .rowIndex(seatEntity.getRowIndex())
                             .seatNumber(seatEntity.getSeatNumber())
                             .rowNumber(seatEntity.getRowNumber())
+                            .areaIndex(seatEntity.getAreaIndex())
+                            .seatStatus(seatEntity.getSeatStatus())
                             .build()
                     );
         }
@@ -132,7 +134,12 @@ public class SeatService {
         return seatEntityMapper.dataToSeatEntity(dataContainer, movieEntity.getSessionId());
     }
 
-    private void persistSeatEntities(List<SeatEntity> seatEntities) {
+    private void persistSeatEntities(List<SeatEntity> seatEntities, int sessionId) {
+        List<SeatEntity> currentSeatEntities = seatRepository.findAllBySessionId(sessionId);
+        if(currentSeatEntities.size() > 0) {
+            //TODO Backup seats and persist reserved seat data
+        }
+        seatRepository.deleteBySessionId(sessionId);
         for(SeatEntity seatEntity: seatEntities) {
             seatRepository.save(seatEntity);
         }

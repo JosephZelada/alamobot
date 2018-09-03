@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Seat {
+public class SeatEssentials {
     private int rowIndex;
     private int columnIndex;
-    private int rowNumber;
-    private int seatNumber;
     private int areaIndex;
-    private String seatStatus;
 }
+

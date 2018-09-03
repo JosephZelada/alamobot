@@ -6801,7 +6801,7 @@ RESPONSE:
 				"paymentToken": null,
 				"paymentTokenType": null,
 				"paymentValueCents": 0,
-				"saveCardToWallet": false,
+				"saveCardToCardWallet": false,
 				"useAsBookingRef": true,
 				"walletAccessToken": null
 			}]

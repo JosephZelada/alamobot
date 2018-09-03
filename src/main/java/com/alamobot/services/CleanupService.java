@@ -46,6 +46,9 @@ public class CleanupService {
                 cleanUpSeats(movieEntity.getSessionId());
                 movieEntitiesToDeleteList.add(movieEntity);
             }
+            if(!movieEntity.getWatched()) {
+                cleanUpSeats(movieEntity.getSessionId());
+            }
         }
         movieRepository.deleteAll(movieEntitiesToDeleteList);
     }

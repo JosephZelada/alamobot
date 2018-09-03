@@ -16,6 +16,7 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 @Configuration
@@ -74,8 +75,14 @@ public class BaseAlamoConfig {
     //Just to hack the servers to let them think I'm coming from Chrome
     HttpHeaders httpHeaders() {
         HttpHeaders headers = new HttpHeaders();
+        ArrayList<MediaType> mediaTypes = new ArrayList<>();
+        mediaTypes.add(MediaType.APPLICATION_JSON);
+        mediaTypes.add(MediaType.ALL);
+        mediaTypes.add(MediaType.TEXT_PLAIN);
+        headers.setAccept(mediaTypes);
+        headers.setConnection("keep-alive");
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("User-Agent", "chrome");
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         return headers;
     }
 }

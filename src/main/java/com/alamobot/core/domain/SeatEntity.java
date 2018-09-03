@@ -33,6 +33,7 @@ public class SeatEntity {
     private int screenNumber;
     private String seatStyle;
     private String seatDescription;
+    //can be EMPTY (Available), NONE (Not a seat), SOLD (Taken)
     private String seatStatus;
     private String tableStyle;
     private String warningMessage;
