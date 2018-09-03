@@ -11,6 +11,7 @@ import com.alamobot.core.api.consume.payment.UserSessionDataContainer;
 import com.alamobot.core.api.consume.payment.SeatClaimDataContainer;
 import com.alamobot.core.persistence.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,6 +34,10 @@ public class PaymentService {
     private HttpEntity<String> noBodyHttpEntity;
     @Autowired
     MovieRepository movieRepository;
+    @Value("${alamo.user-name}")
+    private String userName;
+    @Value("${alamo.password}")
+    private String password;
 
     public boolean buySeats(int sessionId, ArrayList<Seat> seatsToBuy) {
         String cinemaId = movieRepository.findBySessionId(sessionId).getCinemaId();
@@ -110,10 +115,6 @@ public class PaymentService {
         body.put("userSessionId", userSessionId);
         HttpEntity<?> httpEntity = new HttpEntity<>(body, httpHeaders);
 
-//        List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
-//        interceptors.add(new LoggingRequestInterceptor());
-//        restTemplate.setInterceptors(interceptors);
-
         ResponseEntity<SeatClaimDataContainer> seatClaimResponse =
                 restTemplate.exchange(
                         seatChartBaseUrl,
@@ -147,8 +148,8 @@ public class PaymentService {
         String userSessionId = generateUserSessionId();
 
         Map<String, String> body = new HashMap<>();
-        body.put("email", "bibblebobbleboo2@yahoo.com");
-        body.put("password", "bibblebobbleboo2");
+        body.put("email", userName);
+        body.put("password", password);
         body.put("userSessionId", userSessionId);
         HttpEntity<?> httpEntity = new HttpEntity<>(body, httpHeaders);
 
