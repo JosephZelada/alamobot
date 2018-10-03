@@ -86,6 +86,7 @@ public class MovieService {
     private List<Movie> getMovieListFromServer(String marketId) {
         String getMarketDetailsUrl = AlamoUrls.SHOWTIMES_FOR_MARKET_BASE_URL + marketId + "/";
 
+        //TODO: Maybe swap restTemplate out with Feign?
         ResponseEntity<MarketContainer> marketContainerResponse =
                 restTemplate.exchange(
                         getMarketDetailsUrl,
@@ -104,6 +105,7 @@ public class MovieService {
     @Transactional
     private void persistMovieList(List<Movie> movieList) {
         extractAndPersistHelperObjects(movieList);
+        //TODO: Make this a single batch call instead of every movie
         for(Movie movie: movieList) {
             MovieEntity movieEntity = convertToMovieEntity(movie);
             movieRepository.save(movieEntity);

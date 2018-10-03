@@ -42,9 +42,7 @@ public class AlamoScheduler {
     public void getSeatsFromAlamoAndPersist() {
         List<MovieEntity> movieEntities = movieService.getWatchedMovieListFromDatabase();
         for(MovieEntity movieEntity: movieEntities) {
-            if(movieEntity.getWatched()) {
-                seatService.getSeatsFromServerAndPersist(movieEntity);
-            }
+            seatService.getSeatsFromServerAndPersist(movieEntity);
         }
         log.debug("Grabbed seat list from Alamo server and persisted");
     }

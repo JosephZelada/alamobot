@@ -3,6 +3,7 @@ package com.alamobot.resources;
 import com.alamobot.core.ResourcePaths;
 import com.alamobot.core.api.Seat;
 import com.alamobot.services.PaymentService;
+import com.alamobot.services.SeatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,9 +22,16 @@ public class PaymentResource {
     @Autowired
     PaymentService paymentService;
 
+    @Autowired
+    SeatService seatService;
+
     @CrossOrigin
     @PostMapping("/{session_id}")
     public Boolean getSeatsForSessionId(@PathVariable("session_id") int sessionId, @RequestBody(required=false)ArrayList<Seat> seatsToBuy) {
-        return paymentService.buySeats(sessionId, seatsToBuy);
+        boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy);
+        if(seatsBought) {
+            seatService.markSeatsAsBought(seatsToBuy);
+        }
+        return seatsBought;
     }
 }

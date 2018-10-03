@@ -7,6 +7,8 @@ import com.alamobot.services.MarketService;
 import com.alamobot.services.MovieService;
 import com.alamobot.services.PaymentService;
 import com.alamobot.services.SeatService;
+import com.alamobot.services.mock.MockPaymentService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
@@ -48,6 +50,7 @@ public class BaseAlamoConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(value="payments.stub", havingValue = "false", matchIfMissing = true)
     PaymentService paymentService() {
         return new PaymentService();
     }
@@ -60,6 +63,14 @@ public class BaseAlamoConfig {
     @Bean
     RestTemplate restTemplate() {
         return new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+    }
+
+    @Bean
+    @ConditionalOnProperty(value="payments.stub")
+    PaymentService mockPaymentService() {
+        MockPaymentService mockPaymentService = new MockPaymentService();
+        mockPaymentService.setSeatBuyReturnStatus(true);
+        return mockPaymentService;
     }
 
     @Bean

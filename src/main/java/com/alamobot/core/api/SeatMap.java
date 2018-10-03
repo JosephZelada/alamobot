@@ -11,6 +11,7 @@ import java.util.ArrayList;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+//TODO: Maybe replace the seats arraylist of arraylists with a concrete class
 public class SeatMap {
     private String filmName;
     private Integer theaterNum;

@@ -35,7 +35,7 @@ public class SeatEntityMapper {
             warningCode = warning.getCode();
         }
         return SeatEntity.builder()
-                .id(sessionId + String.valueOf(seat.getRowIndex()) + String.valueOf(seat.getColumnIndex()))
+                .id(Integer.valueOf(sessionId + String.valueOf(seat.getRowIndex()) + String.valueOf(seat.getColumnIndex())))
                 .sessionId(sessionId)
                 .rowIndex(seat.getRowIndex())
                 .columnIndex(seat.getColumnIndex())

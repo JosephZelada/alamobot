@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SeatService {
 
@@ -49,6 +50,7 @@ public class SeatService {
         persistSeatEntities(seatEntities, movieEntity.getSessionId());
     }
 
+    //TODO: Can we be doing this padding calculation on the frontend
     public SeatMap getSeatsForSessionId(int sessionId) {
         Optional<MovieEntity> movieEntityOptional = movieRepository.findById(sessionId);
         if(!movieEntityOptional.isPresent()) {
@@ -67,13 +69,17 @@ public class SeatService {
         int maxColumnIndex = 0;
         Map<Integer, Map<Integer, Seat>> seats = new HashMap<>();
         for(SeatEntity seatEntity: seatEntityList) {
+            //TODO: Is there a way to get the rows that isn't just going over every seat
             if(!seats.containsKey(seatEntity.getRowIndex())) {
                 seats.put(seatEntity.getRowIndex(),new HashMap<>());
             }
+            //TODO: Could you store this as part of a theater table
             maxRowIndex = maxRowIndex < seatEntity.getRowIndex() ? seatEntity.getRowIndex() : maxRowIndex;
             maxColumnIndex = maxColumnIndex < seatEntity.getColumnIndex() ? seatEntity.getColumnIndex() : maxColumnIndex;
+            //TODO: Do this with Dozer, make it easier to read
             seats.get(seatEntity.getRowIndex())
                     .put(seatEntity.getColumnIndex(), Seat.builder()
+                            .id(seatEntity.getId())
                             .columnIndex(seatEntity.getColumnIndex())
                             .rowIndex(seatEntity.getRowIndex())
                             .seatNumber(seatEntity.getSeatNumber())
@@ -86,8 +92,11 @@ public class SeatService {
 
         List<Integer> keyList = new ArrayList<>(seats.keySet());
         Collections.sort(keyList);
+        //TODO: Make this shit more clear. I think this is adding full padding rows
+        //TODO: Refactor this into a method
         for(int i = 0; i < keyList.size() - 1; i++) {
             for(int n = keyList.get(i); n < keyList.get(i+1)-1; n++) {
+                //TODO: Why does this if statement exist?
                 if(seats.containsKey(n)) {
                     throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
                 }
@@ -100,6 +109,17 @@ public class SeatService {
         seatMap.setSeats(seatssss);
 
         return seatMap;
+    }
+
+    public List<SeatEntity> markSeatsAsBought(ArrayList<Seat> seatsToBuy) {
+        List<Integer> seatIdsToBuy = seatsToBuy.stream()
+                .map(seat -> seat.getId())
+                .collect(Collectors.toList());
+        List<SeatEntity> seatEntitiesToBuy = seatRepository.findByIdIn(seatIdsToBuy);
+        for(SeatEntity seatEntity: seatEntitiesToBuy) {
+            seatEntity.setSeatBought(true);
+        }
+        return seatEntitiesToBuy;
     }
 
     private RestTemplate initRestTemplate() {
@@ -127,6 +147,7 @@ public class SeatService {
             );
         } catch (Exception e) {
             //TODO: Log exception if it ever happens
+            //TODO: Use SneakyThrows lombok annotation to throw the error away
             return new ArrayList<>();
         }
 
@@ -135,10 +156,16 @@ public class SeatService {
     }
 
     private void persistSeatEntities(List<SeatEntity> seatEntities, int sessionId) {
+        //Go seat by seat
+        //For each seat, grab DB entry
+        //Get bought and person seated in status and add to new seat entity
+        //Default them to false and empty string otherwise
+        //Persist
         List<SeatEntity> currentSeatEntities = seatRepository.findAllBySessionId(sessionId);
         if(currentSeatEntities.size() > 0) {
             //TODO Backup seats and persist reserved seat data
         }
+        //TODO: Maybe remove this delete
         seatRepository.deleteBySessionId(sessionId);
         for(SeatEntity seatEntity: seatEntities) {
             seatRepository.save(seatEntity);

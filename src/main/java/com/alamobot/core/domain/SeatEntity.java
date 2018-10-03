@@ -15,7 +15,7 @@ import javax.persistence.Id;
 @Entity
 public class SeatEntity {
     @Id
-    private String id;
+    private Integer id;
     private Integer sessionId;
     private Integer rowIndex;
     private Integer columnIndex;
@@ -38,4 +38,6 @@ public class SeatEntity {
     private String tableStyle;
     private String warningMessage;
     private int warningCode;
+    private boolean seatBought;
+    private String personInSeat;
 }

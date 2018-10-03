@@ -40,6 +40,8 @@ public class CleanupService {
     }
 
     private void cleanUpMovies() {
+        //TODO: Combine with cleanUpMoviesForMarket
+        //TODO: Don't delete movies with seats unpaid/bought
         List<MovieEntity> movieEntitiesToDeleteList = new ArrayList<>();
         for(MovieEntity movieEntity: movieRepository.findAll()) {
             if(movieEntity.getSessionDateTime().isBefore(LocalDateTime.now())) {
@@ -65,6 +67,7 @@ public class CleanupService {
     private void cleanUpFilms() {
         List<FilmEntity> filmEntitiesToDeleteList = new ArrayList<>();
         for(FilmEntity filmEntity: filmRepository.findAll()) {
+            //TODO: What the hell is this doing? Make it more clear
             if(movieRepository.findAllByFilmId(filmEntity.getId()).size() == 0){
                 filmEntitiesToDeleteList.add(filmEntity);
             }

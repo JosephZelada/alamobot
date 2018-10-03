@@ -31,6 +31,7 @@ public class FilmService {
         filmRepository.save(filmEntity);
     }
 
+    //TODO: Figure out how to get this immediately as a list, not an iterable
     public List<FilmEntity> getAllFilms() {
         Iterable<FilmEntity> source = filmRepository.findAll();
         List<FilmEntity> target = new ArrayList<>();
@@ -45,6 +46,8 @@ public class FilmService {
         return target;
     }
 
+
+    //TODO: Maybe use Dozer for the mapping
     public FilmShowtimes getAllFilmShowtimes(String filmId) {
         Optional<FilmEntity> filmEntityOptional = filmRepository.findById(filmId);
         if(!filmEntityOptional.isPresent()) {

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+//TODO: Can CrossOrigin be called on the class vs the method?
+//TODO: Can you get rid of CrossOrigin by doing http://localhost
 @RestController
 @RequestMapping(path = ResourcePaths.FILM_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class FilmResource {

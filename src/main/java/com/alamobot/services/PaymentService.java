@@ -7,9 +7,10 @@ import com.alamobot.core.api.consume.payment.CardWalletDataContainer;
 import com.alamobot.core.api.consume.payment.LoyaltyMember;
 import com.alamobot.core.api.consume.payment.PaymentDataRequest;
 import com.alamobot.core.api.consume.payment.PaymentDataResponseContainer;
-import com.alamobot.core.api.consume.payment.UserSessionDataContainer;
 import com.alamobot.core.api.consume.payment.SeatClaimDataContainer;
+import com.alamobot.core.api.consume.payment.UserSessionDataContainer;
 import com.alamobot.core.persistence.MovieRepository;
+import com.alamobot.core.persistence.SeatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -34,11 +35,15 @@ public class PaymentService {
     private HttpEntity<String> noBodyHttpEntity;
     @Autowired
     MovieRepository movieRepository;
+    @Autowired
+    SeatRepository seatRepository;
     @Value("${alamo.user-name}")
     private String userName;
     @Value("${alamo.password}")
     private String password;
 
+    //TODO: Add tests around this
+    //TODO: Do a confirmation through checking accounts
     public boolean buySeats(int sessionId, ArrayList<Seat> seatsToBuy) {
         String cinemaId = movieRepository.findBySessionId(sessionId).getCinemaId();
         LoyaltyMember loyaltyMember = logInWithWebSession();
@@ -88,6 +93,7 @@ public class PaymentService {
                         PaymentDataResponseContainer.class
                 );
         PaymentDataResponseContainer paymentDataResponseContainer = paymentDataResponse.getBody();
+        //TODO: Extract to method called validateSeatsBought
         return paymentDataResponseContainer != null && paymentDataResponseContainer.getData() != null && paymentDataResponseContainer.getError() == null && !paymentDataResponseContainer.getData().getPaymentResult().getVistaBookingId() .equals("");
     }
 
@@ -102,6 +108,7 @@ public class PaymentService {
                         SeatClaimDataContainer.class
                 );
         SeatClaimDataContainer seatClaimDataContainer = seatClaimResponse.getBody();
+        //TODO: Extract to method called validateSeatsPrimedForPurchase
         return seatClaimDataContainer != null && seatClaimDataContainer.getError() == null && seatClaimDataContainer.getData().getOrder() != null;
     }
 
@@ -123,6 +130,7 @@ public class PaymentService {
                         SeatClaimDataContainer.class
                 );
         SeatClaimDataContainer seatClaimDataContainer = seatClaimResponse.getBody();
+        //TODO: Extract to method called validateSeatsAssocicatedToAccount
         return seatClaimDataContainer != null && seatClaimDataContainer.getError() == null && seatClaimDataContainer.getData().getOrder() != null;
     }
 
