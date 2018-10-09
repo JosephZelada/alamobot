@@ -22,3 +22,5 @@ Alamobot Checklist:
 6. Schedule seat buy
 7. Buy seats with algorithm to center around row 3, do not buy in front row
 8. Allow parsing algorithm to buy seats
+9. Write black box tests so we can be more confident that we're not breaking shit
+10. Look into rxjs debounce to prevent people from continually spamming any of the UI buttons
