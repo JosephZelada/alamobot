@@ -7,6 +7,7 @@ import com.alamobot.core.domain.MovieEntity;
 import com.alamobot.core.persistence.FilmRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FilmService {
+public class FilmService extends PageableSearchableService {
     @Autowired
     private FilmRepository filmRepository;
     @Autowired
@@ -31,12 +32,8 @@ public class FilmService {
         filmRepository.save(filmEntity);
     }
 
-    //TODO: Figure out how to get this immediately as a list, not an iterable
-    public List<FilmEntity> getAllFilms() {
-        Iterable<FilmEntity> source = filmRepository.findAll();
-        List<FilmEntity> target = new ArrayList<>();
-        source.forEach(target::add);
-        return target;
+    public Page<FilmEntity> getAllFilms(String marketName, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
+        return getAllEntities(marketName, sortBy, orderBy, pageNumber, pageSize, filmRepository);
     }
 
     public List<FilmEntity> getAllFilmsForMarket(String marketId) {
@@ -45,7 +42,6 @@ public class FilmService {
         source.forEach(target::add);
         return target;
     }
-
 
     //TODO: Maybe use Dozer for the mapping
     public FilmShowtimes getAllFilmShowtimes(String filmId) {

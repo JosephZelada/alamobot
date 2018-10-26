@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class FilmEntity {
+public class FilmEntity extends PagingAndSortingEntity {
     @Id
     private String id;
     private String name;

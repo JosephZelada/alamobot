@@ -6,9 +6,6 @@ import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.persistence.MarketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -20,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MarketService {
+public class MarketService extends PageableSearchableService {
     @Autowired
     MarketRepository marketRepository;
     @Autowired
@@ -41,19 +38,7 @@ public class MarketService {
     }
 
     public Page<MarketEntity> getAllMarkets(String marketName, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
-        SearchCriteria criteria = buildSearchCriteria(marketName, sortBy, orderBy, pageNumber, pageSize);
-        Pageable pageable = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
-        return marketRepository.findAllByNameContainingIgnoreCase(criteria.getName(), pageable);
-    }
-
-    private SearchCriteria buildSearchCriteria(String name, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
-        String sortByColumn = name == null || name.equals("") ? "watched": sortBy;
-        String orderByColumn = orderBy == null || !(orderBy.toUpperCase().equals("DESC") || orderBy.toUpperCase().equals("ASC")) ? "DESC" : orderBy.toUpperCase();
-        Sort sort = new Sort(Sort.Direction.fromString(orderByColumn), sortByColumn);
-        String searchByName = name == null ? "" : name;
-        int pageNumberInt = pageNumber == null ? 0 : pageNumber - 1;
-        int pageSizeInt = pageSize == null ? 10 : pageSize;
-        return new SearchCriteria(sort, searchByName, pageNumberInt, pageSizeInt);
+        return getAllEntities(marketName, sortBy, orderBy, pageNumber, pageSize, marketRepository);
     }
 
     void getMarketListFromServerAndPersist() {

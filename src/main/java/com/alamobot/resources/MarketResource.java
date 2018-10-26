@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MarketResource {
     private static final String SORT_BY = "sort_by";
     private static final String ORDER_BY = "order_by";
-    private static final String MARKET_NAME = "market_name";
+    private static final String SEARCH_TERM = "search_term";
     private static final String PAGE_NUMBER = "page_number";
     private static final String PAGE_SIZE = "page_size";
 
@@ -36,9 +36,9 @@ public class MarketResource {
     @GetMapping
     public Page<MarketEntity> getAllMarkets(@RequestParam(value = SORT_BY, required = false) String sort_by,
                                             @RequestParam(value = ORDER_BY, required = false) String order_by,
-                                            @RequestParam(value = MARKET_NAME, required = false) String market_name,
+                                            @RequestParam(value = SEARCH_TERM, required = false) String search_term,
                                             @RequestParam(value = PAGE_NUMBER, required = false) Integer page_number,
                                             @RequestParam(value = PAGE_SIZE, required = false) Integer page_size) {
-        return marketService.getAllMarkets(market_name, sort_by, order_by, page_number, page_size);
+        return marketService.getAllMarkets(search_term, sort_by, order_by, page_number, page_size);
     }
 }

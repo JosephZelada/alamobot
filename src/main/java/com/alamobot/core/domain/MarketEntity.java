@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class MarketEntity {
+public class MarketEntity extends PagingAndSortingEntity {
     @Id
     private String id;
     private String name;
