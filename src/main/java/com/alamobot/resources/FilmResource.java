@@ -27,6 +27,7 @@ public class FilmResource {
     private static final String PAGE_NUMBER = "page_number";
     private static final String PAGE_SIZE = "page_size";
     private static final String SEARCH_TERM = "search_term";
+    private static final String MARKET_ID = "market_id";
 
     @CrossOrigin
     @PostMapping("/{film_id}")
@@ -37,12 +38,13 @@ public class FilmResource {
 
     @CrossOrigin
     @GetMapping
-    public Page<FilmEntity> getAllMovies(@RequestParam(value = SORT_BY, required = false) String sort_by,
+    public Page<FilmEntity> getAllMoviesForMarket(@RequestParam(value = SORT_BY, required = false) String sort_by,
                                          @RequestParam(value = ORDER_BY, required = false) String order_by,
                                          @RequestParam(value = SEARCH_TERM, required = false) String search_term,
                                          @RequestParam(value = PAGE_NUMBER, required = false) Integer page_number,
-                                         @RequestParam(value = PAGE_SIZE, required = false) Integer page_size) {
-        return filmService.getAllFilms(search_term, sort_by, order_by, page_number, page_size);
+                                         @RequestParam(value = PAGE_SIZE, required = false) Integer page_size,
+                                         @RequestParam(value = MARKET_ID) String market_id) {
+        return filmService.getAllFilmsForMarket(sort_by, order_by, page_number, page_size, market_id, search_term);
     }
 
     @CrossOrigin
@@ -50,4 +52,6 @@ public class FilmResource {
     public FilmShowtimes getAllMovieShowtimes(@PathVariable("film_id") String filmId) {
         return filmService.getAllFilmShowtimes(filmId);
     }
+
+
 }

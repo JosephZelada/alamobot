@@ -94,6 +94,10 @@ task removePostgresContainer(type: DockerRemoveContainer) {
     targetContainerId { 'postgres-alamobot' }
 }
 
+//task refreshPostgresContainer(type: DockerRemoveContainer) {
+//    targetContainerId { 'postgres-alamobot' }
+//}
+
 def buildAliases = [
         'refreshPostgresContainer' : ['stopPostgresContainer', 'removePostgresContainer', 'startPostgresContainer']
 ]

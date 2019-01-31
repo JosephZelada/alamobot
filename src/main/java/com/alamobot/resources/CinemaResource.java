@@ -4,6 +4,7 @@ import com.alamobot.core.ResourcePaths;
 import com.alamobot.services.CinemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ public class CinemaResource {
     @Autowired
     CinemaService cinemaService;
 
+    @CrossOrigin
     @PostMapping("/{cinema_id}")
     public void markCinemaAsViewed(@PathVariable("cinema_id") String cinemaId, @RequestParam("watched") Boolean watched) {
         cinemaService.markCinemaAsViewed(cinemaId, watched);

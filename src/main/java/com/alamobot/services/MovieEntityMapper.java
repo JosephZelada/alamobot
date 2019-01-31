@@ -112,6 +112,7 @@ class MovieEntityMapper {
                                 .id(cinema.getCinemaId())
                                 .name(cinema.getCinemaName())
                                 .slug(cinema.getCinemaSlug())
+                                .marketId(market.getMarketId())
                                 .build())
                 .film(FilmEntity.builder()
                               .id(film.getFilmId())

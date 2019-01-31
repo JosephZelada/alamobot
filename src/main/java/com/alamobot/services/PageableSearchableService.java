@@ -13,7 +13,7 @@ public class PageableSearchableService {
         return repository.findAllByNameContainingIgnoreCase(criteria.getName(), pageable);
     }
 
-    private SearchCriteria buildSearchCriteria(String name, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
+    public SearchCriteria buildSearchCriteria(String name, String sortBy, String orderBy, Integer pageNumber, Integer pageSize) {
         String sortByColumn = sortBy == null || sortBy.equals("") ? "watched": sortBy;
         String orderByColumn = orderBy == null || !(orderBy.toUpperCase().equals("DESC") || orderBy.toUpperCase().equals("ASC")) ? "DESC" : orderBy.toUpperCase();
         Sort sort = new Sort(Sort.Direction.fromString(orderByColumn), sortByColumn);

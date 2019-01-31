@@ -24,6 +24,7 @@ create table cinema_entity (
   name varchar(255),
   slug varchar(255),
   watched boolean NOT NULL,
+  market_id varchar(255),
   primary key (id)
 );
 

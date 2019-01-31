@@ -111,7 +111,7 @@ public class SeatService {
         return seatMap;
     }
 
-    public List<SeatEntity> markSeatsAsBought(ArrayList<Seat> seatsToBuy) {
+    public void markSeatsAsBought(ArrayList<Seat> seatsToBuy) {
         List<Integer> seatIdsToBuy = seatsToBuy.stream()
                 .map(seat -> seat.getId())
                 .collect(Collectors.toList());
@@ -119,7 +119,7 @@ public class SeatService {
         for(SeatEntity seatEntity: seatEntitiesToBuy) {
             seatEntity.setSeatBought(true);
         }
-        return seatEntitiesToBuy;
+        seatRepository.saveAll(seatEntitiesToBuy);
     }
 
     private RestTemplate initRestTemplate() {
@@ -161,13 +161,13 @@ public class SeatService {
         //Get bought and person seated in status and add to new seat entity
         //Default them to false and empty string otherwise
         //Persist
-        List<SeatEntity> currentSeatEntities = seatRepository.findAllBySessionId(sessionId);
-        if(currentSeatEntities.size() > 0) {
-            //TODO Backup seats and persist reserved seat data
-        }
-        //TODO: Maybe remove this delete
-        seatRepository.deleteBySessionId(sessionId);
+//        //TODO: Maybe remove this delete
+//        seatRepository.deleteBySessionId(sessionId);
         for(SeatEntity seatEntity: seatEntities) {
+            Optional<SeatEntity> seatEntityOptional = seatRepository.findById(seatEntity.getId());
+            if(seatEntityOptional.isPresent()) {
+                seatEntity.setSeatBought(seatEntityOptional.get().isSeatBought());
+            }
             seatRepository.save(seatEntity);
         }
     }

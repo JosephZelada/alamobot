@@ -14,4 +14,9 @@ public interface SeatRepository extends JpaRepository<SeatEntity, Integer> {
 
     List<SeatEntity> findByIdIn(List<Integer> idList);
 
+    List<SeatEntity> findAllBySeatBoughtIsTrue();
+
+    List<SeatEntity> findAllBySeatBought(boolean seatBought);
+
+    List<SeatEntity> findAllBySessionIdAndSeatBought(int sessionId, boolean seatBought);
 }

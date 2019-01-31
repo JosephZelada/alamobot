@@ -19,4 +19,5 @@ public class CinemaEntity {
     private String name;
     private String slug;
     private Boolean watched;
+    private String marketId;
 }

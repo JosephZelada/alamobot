@@ -168,6 +168,7 @@ public class MovieService {
                 .id(movie.getCinema().getId())
                 .name(movie.getCinema().getName())
                 .slug(movie.getCinema().getSlug())
+                .marketId(movie.getMarket().getId())
                 .build();
         Optional<CinemaEntity> cinemaEntityOptional = cinemaRepository.findById(movie.getCinema().getId());
         boolean watchedStatus = cinemaEntityOptional.isPresent() ? cinemaEntityOptional.get().getWatched() : false;

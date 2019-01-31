@@ -58,6 +58,9 @@ public class PaymentService {
         if(!primeSeatsForSale(sessionId, userSessionId, cinemaId)) {
             return false;
         }
+        if(!buyTicketsForClaimedSeats(cardWalletToken, loyaltyMember, cinemaId, sessionId)) {
+            return false;
+        }
         return buyTicketsForClaimedSeats(cardWalletToken, loyaltyMember, cinemaId, sessionId);
     }
 

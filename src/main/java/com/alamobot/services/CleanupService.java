@@ -58,8 +58,10 @@ public class CleanupService {
     private void cleanUpMoviesForMarket(String marketId) {
         List<MovieEntity> movieEntitiesToDeleteList = new ArrayList<>();
         for(MovieEntity movieEntity: movieRepository.findAllByMarketId(marketId)) {
-            cleanUpSeats(movieEntity.getSessionId());
-            movieEntitiesToDeleteList.add(movieEntity);
+            if(seatRepository.findAllBySessionIdAndSeatBought(movieEntity.getSessionId(), true).size() == 0) {
+                cleanUpSeats(movieEntity.getSessionId());
+                movieEntitiesToDeleteList.add(movieEntity);
+            }
         }
         movieRepository.deleteAll(movieEntitiesToDeleteList);
     }

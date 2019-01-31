@@ -40,4 +40,12 @@ public class SeatEntity {
     private int warningCode;
     private boolean seatBought;
     private String personInSeat;
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof SeatEntity) {
+            return ((SeatEntity) o).getSessionId().equals(sessionId);
+        }
+        return false;
+    }
 }
