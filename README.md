@@ -14,6 +14,8 @@ Need to add in postgres docker container# alamobot
 # alamobot
 
 Alamobot Checklist:
+1. Whenever 'Watched' is clicked, immediately kick off retrieve scheduled job and refresh page
+2. Show loading wheel when doing long things (purchasing)
 1. Standardize terms (movie vs showtime, etc) across all projects
 2. Be able to assign people to seats
 3. Be able to keep track of whether or not someone has paid for the tickets
