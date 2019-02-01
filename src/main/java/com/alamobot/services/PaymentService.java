@@ -261,11 +261,12 @@ public class PaymentService {
                             BoughtSeatDataResponseContainer.class
                     );
             BoughtSeatDataResponseContainer seatPurchaseConfirmationResponse = seatPurchaseConfirmationResponseContainer.getBody();
+            Integer sessionId = seatPurchaseConfirmationResponse.getData().getBooking().getSessionId();
 
             try {
                 populateAndMarkMarketAsWatched(purchase.getMarketId());
                 populateAndMarkFilmAsWatched(purchase.getFilmHoCode());
-                populateAndMarkShowtimeAsWatched(seatPurchaseConfirmationResponse.getData().getBooking().getSessionId());
+                populateAndMarkShowtimeAsWatched(sessionId);
             } catch(Exception e) {
                 continue;
             }
@@ -275,15 +276,15 @@ public class PaymentService {
             //TODO: Do a null check on seatPurchaseConfirmationResponse all the way down before doing getData
             List<BoughtSeat> boughtSeats = seatPurchaseConfirmationResponse.getData().getBooking().getSeats();
             for(BoughtSeat boughtSeat: boughtSeats) {
-                String seatId = seatPurchaseConfirmationResponse.getData().getBooking().getSessionId().toString()
-                        + boughtSeat.getRowNumber().toString()
-                        + boughtSeat.getSeatNumber().toString();
-                Optional<SeatEntity> seatEntityOptional = seatRepository.findById(Integer.parseInt(seatId));
-                if(!seatEntityOptional.isPresent()) {
-                    log.error("Unable to find seat " + seatId + " for film " + purchase.getFilmSlug());
-                    continue;
+                SeatEntity seatEntity = seatRepository.findBySessionIdAndRowNumberAndSeatNumber(sessionId, boughtSeat.getRowNumber(), boughtSeat.getSeatNumber());
+                if(seatEntity == null) {
+                    alamoScheduler.getSeatsFromAlamoAndPersist();
+                    seatEntity = seatRepository.findBySessionIdAndRowNumberAndSeatNumber(sessionId, boughtSeat.getRowNumber(), boughtSeat.getSeatNumber());
+                    if(seatEntity == null) {
+                        log.error("Unable to find session " + sessionId +  ", row " + boughtSeat.getRowNumber() + ", seat " + boughtSeat.getSeatNumber() + " for film " + purchase.getFilmSlug());
+                        continue;
+                    }
                 }
-                SeatEntity seatEntity = seatEntityOptional.get();
                 seatEntity.setSeatBought(true);
                 seatRepository.save(seatEntity);
             }

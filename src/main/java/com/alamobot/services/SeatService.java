@@ -84,14 +84,15 @@ public class SeatService {
         Map<Integer, Map<Integer, Seat>> seats = new HashMap<>();
         for(SeatEntity seatEntity: seatEntityList) {
             //TODO: Is there a way to get the rows that isn't just going over every seat
-            if(!seats.containsKey(seatEntity.getRowIndex())) {
-                seats.put(seatEntity.getRowIndex(),new HashMap<>());
+            int currentSeatRowIndex = seatEntity.getRowIndex();
+            if(!seats.containsKey(currentSeatRowIndex)) {
+                seats.put(currentSeatRowIndex,new HashMap<>());
             }
             //TODO: Could you store this as part of a theater table
-            maxRowIndex = maxRowIndex < seatEntity.getRowIndex() ? seatEntity.getRowIndex() : maxRowIndex;
+            maxRowIndex = maxRowIndex < currentSeatRowIndex ? currentSeatRowIndex : maxRowIndex;
             maxColumnIndex = maxColumnIndex < seatEntity.getColumnIndex() ? seatEntity.getColumnIndex() : maxColumnIndex;
             //TODO: Do this with Dozer, make it easier to read
-            seats.get(seatEntity.getRowIndex())
+            seats.get(currentSeatRowIndex)
                     .put(seatEntity.getColumnIndex(), Seat.builder()
                             .id(seatEntity.getId())
                             .columnIndex(seatEntity.getColumnIndex())
