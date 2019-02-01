@@ -16,6 +16,7 @@ public class FilmWithSeatCount {
     private String filmName;
     private LocalDateTime sessionDateTime;
     private Integer seatCount;
+    private String cinema;
 
     public void incrementSeatCount() {
         if(seatCount == null) {

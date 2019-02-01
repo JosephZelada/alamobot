@@ -2,6 +2,7 @@ package com.alamobot.services;
 
 import com.alamobot.core.api.FilmShowtime;
 import com.alamobot.core.api.FilmShowtimes;
+import com.alamobot.core.domain.CinemaEntity;
 import com.alamobot.core.domain.FilmEntity;
 import com.alamobot.core.domain.FilmWithSeatCount;
 import com.alamobot.core.domain.MovieEntity;
@@ -66,6 +67,13 @@ public class FilmService extends PageableSearchableService {
         }
         for(Integer sessionId: sessionSeatCountMap.keySet()) {
             MovieEntity movieEntity = movieRepository.findBySessionId(sessionId);
+            Optional<CinemaEntity> cinemaEntityOptional = cinemaRepository.findById(movieEntity.getCinemaId());
+            if(!cinemaEntityOptional.isPresent()) {
+                log.error("Could not find cinema entry for showtime session " + sessionId);
+                sessionSeatCountMap.remove(sessionId);
+                continue;
+            }
+            CinemaEntity cinemaEntity = cinemaEntityOptional.get();
             String filmId = movieEntity.getFilmId();
             Optional<FilmEntity> filmEntityOptional = filmRepository.findById(filmId);
             if(!filmEntityOptional.isPresent()) {
@@ -77,6 +85,7 @@ public class FilmService extends PageableSearchableService {
             FilmWithSeatCount filmWithSeatCount = sessionSeatCountMap.get(sessionId);
             filmWithSeatCount.setFilmName(filmEntity.getName());
             filmWithSeatCount.setSessionDateTime(movieEntity.getSessionDateTime());
+            filmWithSeatCount.setCinema(cinemaEntity.getName());
         }
         return sessionSeatCountMap.values();
     }

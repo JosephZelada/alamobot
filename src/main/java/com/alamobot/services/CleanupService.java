@@ -44,13 +44,16 @@ public class CleanupService {
         //TODO: Don't delete movies with seats unpaid/bought
         List<MovieEntity> movieEntitiesToDeleteList = new ArrayList<>();
         for(MovieEntity movieEntity: movieRepository.findAll()) {
-            if(movieEntity.getSessionDateTime().isBefore(LocalDateTime.now())) {
-                cleanUpSeats(movieEntity.getSessionId());
-                movieEntitiesToDeleteList.add(movieEntity);
+            if(showtimeHasSeatsThatHaveBeenBoughtByMe(movieEntity.getSessionId())) {
+                if(movieEntity.getSessionDateTime().isBefore(LocalDateTime.now())) {
+                    cleanUpSeats(movieEntity.getSessionId());
+                    movieEntitiesToDeleteList.add(movieEntity);
+                }
+                if(!movieEntity.getWatched()) {
+                    cleanUpSeats(movieEntity.getSessionId());
+                }
             }
-            if(!movieEntity.getWatched()) {
-                cleanUpSeats(movieEntity.getSessionId());
-            }
+
         }
         movieRepository.deleteAll(movieEntitiesToDeleteList);
     }
@@ -58,7 +61,7 @@ public class CleanupService {
     private void cleanUpMoviesForMarket(String marketId) {
         List<MovieEntity> movieEntitiesToDeleteList = new ArrayList<>();
         for(MovieEntity movieEntity: movieRepository.findAllByMarketId(marketId)) {
-            if(seatRepository.findAllBySessionIdAndSeatBought(movieEntity.getSessionId(), true).size() == 0) {
+            if(showtimeHasSeatsThatHaveBeenBoughtByMe(movieEntity.getSessionId())) {
                 cleanUpSeats(movieEntity.getSessionId());
                 movieEntitiesToDeleteList.add(movieEntity);
             }
@@ -69,8 +72,7 @@ public class CleanupService {
     private void cleanUpFilms() {
         List<FilmEntity> filmEntitiesToDeleteList = new ArrayList<>();
         for(FilmEntity filmEntity: filmRepository.findAll()) {
-            //TODO: What the hell is this doing? Make it more clear
-            if(movieRepository.findAllByFilmId(filmEntity.getId()).size() == 0){
+            if(movieHasValidShowtimesInDatabase(filmEntity.getId())){
                 filmEntitiesToDeleteList.add(filmEntity);
             }
         }
@@ -79,5 +81,13 @@ public class CleanupService {
 
     private void cleanUpSeats(int movieSessionId) {
         seatRepository.deleteBySessionId(movieSessionId);
+    }
+
+    private boolean movieHasValidShowtimesInDatabase(String filmId) {
+        return movieRepository.findAllByFilmId(filmId).size() == 0;
+    }
+
+    private boolean showtimeHasSeatsThatHaveBeenBoughtByMe(Integer sessionId) {
+        return seatRepository.findAllBySessionIdAndSeatBought(sessionId, true).size() == 0;
     }
 }
