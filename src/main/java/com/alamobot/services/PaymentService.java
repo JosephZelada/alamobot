@@ -9,8 +9,19 @@ import com.alamobot.core.api.consume.payment.PaymentDataRequest;
 import com.alamobot.core.api.consume.payment.PaymentDataResponseContainer;
 import com.alamobot.core.api.consume.payment.SeatClaimDataContainer;
 import com.alamobot.core.api.consume.payment.UserSessionDataContainer;
+import com.alamobot.core.api.consume.payment.scheduled.BoughtSeat;
+import com.alamobot.core.api.consume.payment.scheduled.BoughtSeatDataResponseContainer;
+import com.alamobot.core.api.consume.payment.scheduled.PaymentHistoryDataResponseContainer;
+import com.alamobot.core.api.consume.payment.scheduled.Purchase;
+import com.alamobot.core.domain.FilmEntity;
+import com.alamobot.core.domain.MarketEntity;
+import com.alamobot.core.domain.MovieEntity;
+import com.alamobot.core.domain.SeatEntity;
+import com.alamobot.core.persistence.FilmRepository;
+import com.alamobot.core.persistence.MarketRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import com.alamobot.core.persistence.SeatRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -20,11 +31,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 public class PaymentService {
 
     @Autowired
@@ -36,7 +50,13 @@ public class PaymentService {
     @Autowired
     MovieRepository movieRepository;
     @Autowired
+    MarketRepository marketRepository;
+    @Autowired
     SeatRepository seatRepository;
+    @Autowired
+    FilmRepository filmRepository;
+    @Autowired
+    AlamoScheduler alamoScheduler;
     @Value("${alamo.user-name}")
     private String userName;
     @Value("${alamo.password}")
@@ -195,5 +215,132 @@ public class PaymentService {
         Integer random16NoDecimal = (int)(Math.random() * 16);
         int newCharacter = 'x' == characterToConvert ? random16NoDecimal : 3 & random16NoDecimal | 8;
         return Integer.toHexString(newCharacter).charAt(0);
+    }
+
+    public void getBoughtMovieSeatsFromServerAndPersist() {
+        //Log in to Alamo to get userSessionId
+        LoyaltyMember loyaltyMember = logInWithWebSession();
+        if(loyaltyMember == null) {
+            return;
+        }
+
+        String userSessionId = loyaltyMember.getUserSessionId();
+        //Get list of bought showtimes
+        String paymentHistoryUrl = AlamoUrls.PAYMENT_HISTORY_BASE_URL + "?userSessionId=" +userSessionId;
+
+        Map<String, String> body = new HashMap<>();
+        HttpEntity<?> httpEntity = new HttpEntity<>(body, httpHeaders);
+
+        ResponseEntity<PaymentHistoryDataResponseContainer> purchaseHistoryResponse =
+                restTemplate.exchange(
+                        paymentHistoryUrl,
+                        HttpMethod.GET,
+                        httpEntity,
+                        PaymentHistoryDataResponseContainer.class
+                );
+        PaymentHistoryDataResponseContainer paymentHistoryDataResponseContainer = purchaseHistoryResponse.getBody();
+
+        //Convert to usable list
+        List<Purchase> futureShowtimePurchases = new ArrayList<>();
+        for(Purchase purchase: paymentHistoryDataResponseContainer.getData().getPurchaseHistory().getPurchases()) {
+            //In conversion, shave off any showtimes that have already passed
+            if(showtimeHasNotPassedOrBeenRefunded(purchase)) {
+                futureShowtimePurchases.add(purchase);
+            }
+        }
+
+        //Iterate over all remaining showtimes
+        for(Purchase purchase: futureShowtimePurchases) {
+            //Get seats for showtime (different endpoint)
+            String seatPurchaseConfirmationUrl = AlamoUrls.TICKET_SEATING_CONFIRMATION_BASE_URL + "/" + purchase.getCinemaId() + "/" + purchase.getBookingId() + "/" + purchase.getFilmSlug() + "?userSessionId=" +userSessionId;
+            ResponseEntity<BoughtSeatDataResponseContainer> seatPurchaseConfirmationResponseContainer =
+                    restTemplate.exchange(
+                            seatPurchaseConfirmationUrl,
+                            HttpMethod.GET,
+                            httpEntity,
+                            BoughtSeatDataResponseContainer.class
+                    );
+            BoughtSeatDataResponseContainer seatPurchaseConfirmationResponse = seatPurchaseConfirmationResponseContainer.getBody();
+
+            try {
+                populateAndMarkMarketAsWatched(purchase.getMarketId());
+                populateAndMarkFilmAsWatched(purchase.getFilmHoCode());
+                populateAndMarkShowtimeAsWatched(seatPurchaseConfirmationResponse.getData().getBooking().getSessionId());
+            } catch(Exception e) {
+                continue;
+            }
+
+
+            //Mark seats as bought, maintaining seatStatus if TAKEN and personInSeat if set
+            //TODO: Do a null check on seatPurchaseConfirmationResponse all the way down before doing getData
+            List<BoughtSeat> boughtSeats = seatPurchaseConfirmationResponse.getData().getBooking().getSeats();
+            for(BoughtSeat boughtSeat: boughtSeats) {
+                String seatId = seatPurchaseConfirmationResponse.getData().getBooking().getSessionId().toString()
+                        + boughtSeat.getRowNumber().toString()
+                        + boughtSeat.getSeatNumber().toString();
+                Optional<SeatEntity> seatEntityOptional = seatRepository.findById(Integer.parseInt(seatId));
+                if(!seatEntityOptional.isPresent()) {
+                    log.error("Unable to find seat " + seatId + " for film " + purchase.getFilmSlug());
+                    continue;
+                }
+                SeatEntity seatEntity = seatEntityOptional.get();
+                seatEntity.setSeatBought(true);
+                seatRepository.save(seatEntity);
+            }
+        }
+    }
+
+    private void populateAndMarkShowtimeAsWatched(Integer sessionId) throws Exception {
+        MovieEntity movieEntity = movieRepository.findBySessionId(sessionId);
+        if(movieEntity == null) {
+            alamoScheduler.getSeatsFromAlamoAndPersist();
+            movieEntity = movieRepository.findBySessionId(sessionId);
+            if(movieEntity == null) {
+                log.error("Unable to find showtime by sessionId " + sessionId + ", skipping purchase");
+                throw new Exception();
+            }
+            //Get movie from server before continuing. Do it like AlamoScheduler does, get and persist
+            //Grab the movie again from the database when you're done, put it in the entity
+        }
+        movieEntity.setWatched(true);
+        movieRepository.save(movieEntity);
+    }
+
+    private void populateAndMarkFilmAsWatched(String filmId) throws Exception {
+        Optional<FilmEntity> filmEntityOptional = filmRepository.findById(filmId);
+        if(!filmEntityOptional.isPresent()) {
+            alamoScheduler.getMoviesFromAlamoAndPersist();
+            filmEntityOptional = filmRepository.findById(filmId);
+            if(!filmEntityOptional.isPresent()) {
+                log.error("Unable to find movie by filmId " + filmId + ", skipping purchase");
+                throw new Exception();
+            }
+            //Get film from server before continuing. Do it like AlamoScheduler does, get and persist
+            //Grab the film again from the database when you're done, put it in the optional
+        }
+        FilmEntity filmEntity = filmEntityOptional.get();
+        filmEntity.setWatched(true);
+        filmRepository.save(filmEntity);
+    }
+
+    private void populateAndMarkMarketAsWatched(String marketId) throws Exception {
+        Optional<MarketEntity> marketEntityOptional = marketRepository.findById(marketId);
+        if(!marketEntityOptional.isPresent()) {
+            alamoScheduler.getMarketsFromAlamoAndPersist();
+            marketEntityOptional = marketRepository.findById(marketId);
+            if(!marketEntityOptional.isPresent()) {
+                log.error("Unable to find market by marketId " + marketId + ", skipping purchase");
+                throw new Exception();
+            }
+            //Get market from server before continuing. Do it like AlamoScheduler does, get and persist
+            //Grab the market again from the database when you're done, put it in the optional
+        }
+        MarketEntity marketEntity = marketEntityOptional.get();
+        marketEntity.setWatched(true);
+        marketRepository.save(marketEntity);
+    }
+
+    private boolean showtimeHasNotPassedOrBeenRefunded(Purchase purchase) {
+        return !purchase.isRefunded() && (purchase.getSessionDateTimeClt().isAfter(LocalDateTime.now()));
     }
 }

@@ -8,4 +8,6 @@ public class AlamoUrls {
     public static final String LOGIN_BASE_URL = "https://drafthouse.com/s/mother/v1/auth/login/email-password";
     public static final String WALLET_BASE_URL = "https://drafthouse.com/s/mother/v1/card-wallet";
     public static final String CHECKOUT_BASE_URL = "https://drafthouse.com/s/mother/v1/app/checkout/";
+    public static final String PAYMENT_HISTORY_BASE_URL = "https://drafthouse.com/s/mother/v1/purchase-history";
+    public static final String TICKET_SEATING_CONFIRMATION_BASE_URL = "https://drafthouse.com/s/mother/v1/app/confirmation/";
 }

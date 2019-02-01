@@ -26,6 +26,9 @@ public class AlamoScheduler {
     @Autowired
     CleanupService cleanupService;
 
+    @Autowired
+    PaymentService paymentService;
+
     @Scheduled(fixedRate = 30000)
     public void getMoviesFromAlamoAndPersist() {
         log.debug("Grabbed movie list from Alamo server and persisted");
@@ -51,5 +54,11 @@ public class AlamoScheduler {
     public void cleanUpOldShowtimes() {
         log.debug("Cleaning up database of old showtimes, seats and movies");
         cleanupService.cleanUpPastShowtimeData();
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void getSeatsNotBoughtThroughAlamoBot() {
+        log.debug("Getting seats not bought through AlamoBot to persist");
+        paymentService.getBoughtMovieSeatsFromServerAndPersist();
     }
 }
