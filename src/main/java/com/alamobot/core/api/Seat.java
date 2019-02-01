@@ -17,4 +17,6 @@ public class Seat {
     private int seatNumber;
     private int areaIndex;
     private String seatStatus;
+    private boolean seatBought;
+    private String personInSeat;
 }

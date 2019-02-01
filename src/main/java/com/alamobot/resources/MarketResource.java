@@ -49,13 +49,14 @@ public class MarketResource {
     }
 
     @CrossOrigin
-    @GetMapping("/{market_id}")
-    public Page<CinemaEntity> getAllCinemasForMarket(@RequestParam(value = SORT_BY, required = false) String sort_by,
+    @GetMapping("/{market_id}/{film_id}")
+    public Page<CinemaEntity> getAllCinemasForFilmInMarket(@RequestParam(value = SORT_BY, required = false) String sort_by,
                                                      @RequestParam(value = ORDER_BY, required = false) String order_by,
                                                      @RequestParam(value = SEARCH_TERM, required = false) String search_term,
                                                      @RequestParam(value = PAGE_NUMBER, required = false) Integer page_number,
                                                      @RequestParam(value = PAGE_SIZE, required = false) Integer page_size,
-                                                     @PathVariable("market_id") String market_id) {
-        return cinemaService.getAllCinemasForMarket(sort_by, order_by, page_number, page_size, search_term, market_id);
+                                                     @PathVariable("market_id") String market_id,
+                                                     @PathVariable("film_id") String filmId) {
+        return cinemaService.getAllCinemasForFilmInMarket(sort_by, order_by, page_number, page_size, search_term, market_id, filmId);
     }
 }

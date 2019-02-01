@@ -11,6 +11,10 @@ public interface MovieRepository extends CrudRepository<MovieEntity, Integer> {
 
     List<MovieEntity> findAllByFilmId(String filmId);
 
+    List<MovieEntity> findAllByFilmIdAndMarketId(String filmId, String marketId);
+
+    List<MovieEntity> findAllByFilmIdAndCinemaId(String filmId, String cinemaId);
+
     List<MovieEntity> findAllByMarketId(String marketId);
 
     MovieEntity findBySessionId(int sessionId);

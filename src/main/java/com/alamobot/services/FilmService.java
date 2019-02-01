@@ -9,7 +9,6 @@ import com.alamobot.core.domain.MovieEntity;
 import com.alamobot.core.domain.SeatEntity;
 import com.alamobot.core.persistence.CinemaRepository;
 import com.alamobot.core.persistence.FilmRepository;
-import com.alamobot.core.persistence.MarketRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import com.alamobot.core.persistence.SeatRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +34,6 @@ public class FilmService extends PageableSearchableService {
     private MovieRepository movieRepository;
     @Autowired
     private CinemaRepository cinemaRepository;
-    @Autowired
-    private MarketRepository marketRepository;
     @Autowired
     private SeatRepository seatRepository;
 
@@ -104,14 +101,14 @@ public class FilmService extends PageableSearchableService {
     }
 
     //TODO: Maybe use Dozer for the mapping
-    public FilmShowtimes getAllFilmShowtimes(String filmId) {
+    public FilmShowtimes getAllFilmShowtimes(String filmId, String cinemaId) {
         Optional<FilmEntity> filmEntityOptional = filmRepository.findById(filmId);
         if(!filmEntityOptional.isPresent()) {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         FilmEntity filmEntity = filmEntityOptional.get();
 
-        List<MovieEntity> movieEntityList = movieRepository.findAllByFilmId(filmId);
+        List<MovieEntity> movieEntityList = movieRepository.findAllByFilmIdAndCinemaId(filmId, cinemaId);
         List<FilmShowtime> filmShowtimes =  movieEntityList.stream()
                 .map(movieEntity -> FilmShowtime.builder()
                         .sessionId(movieEntity.getSessionId())

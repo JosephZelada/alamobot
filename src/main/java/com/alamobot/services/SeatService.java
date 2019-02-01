@@ -10,6 +10,7 @@ import com.alamobot.core.domain.SeatEntity;
 import com.alamobot.core.persistence.FilmRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import com.alamobot.core.persistence.SeatRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class SeatService {
 
     @Autowired
@@ -45,9 +47,21 @@ public class SeatService {
     private RestTemplate restTemplate = initRestTemplate();
     private HttpEntity<String> headersEntity = initHttpHeaders();
 
+    public void takeSeatForSession(int seatId, String namePerson) {
+        Optional<SeatEntity> seatEntityOptional = seatRepository.findById(seatId);
+        if(!seatEntityOptional.isPresent()) {
+            log.error("Unable to find seat with ID " + seatId);
+            return;
+        }
+        SeatEntity seatEntity = seatEntityOptional.get();
+        seatEntity.setPersonInSeat(namePerson);
+        seatEntity.setSeatStatus("TAKEN");
+        seatRepository.save(seatEntity);
+    }
+
     public void getSeatsFromServerAndPersist(MovieEntity movieEntity) {
         List<SeatEntity> seatEntities = getSeatsFromServerForMovie(movieEntity);
-        persistSeatEntities(seatEntities, movieEntity.getSessionId());
+        persistSeatEntities(seatEntities);
     }
 
     //TODO: Can we be doing this padding calculation on the frontend
@@ -86,6 +100,8 @@ public class SeatService {
                             .rowNumber(seatEntity.getRowNumber())
                             .areaIndex(seatEntity.getAreaIndex())
                             .seatStatus(seatEntity.getSeatStatus())
+                            .seatBought(seatEntity.isSeatBought())
+                            .personInSeat(seatEntity.getPersonInSeat())
                             .build()
                     );
         }
@@ -155,25 +171,19 @@ public class SeatService {
         return seatEntityMapper.dataToSeatEntity(dataContainer, movieEntity.getSessionId());
     }
 
-    private void persistSeatEntities(List<SeatEntity> seatEntities, int sessionId) {
-        //Go seat by seat
-        //For each seat, grab DB entry
-        //Get bought and person seated in status and add to new seat entity
-        //Default them to false and empty string otherwise
-        //Persist
-//        //TODO: Maybe remove this delete
-//        seatRepository.deleteBySessionId(sessionId);
+    private void persistSeatEntities(List<SeatEntity> seatEntities) {
         for(SeatEntity seatEntity: seatEntities) {
             Optional<SeatEntity> seatEntityOptional = seatRepository.findById(seatEntity.getId());
             if(seatEntityOptional.isPresent()) {
-                seatEntity.setSeatBought(seatEntityOptional.get().isSeatBought());
+                SeatEntity currentSeatEntity = seatEntityOptional.get();
+                seatEntity.setSeatBought(currentSeatEntity.isSeatBought());
+                seatEntity.setPersonInSeat(currentSeatEntity.getPersonInSeat());
+                if(currentSeatEntity.getSeatStatus().equals("TAKEN")) {
+                    seatEntity.setSeatStatus("TAKEN");
+                }
             }
             seatRepository.save(seatEntity);
         }
-    }
-
-    private void setSeatToTaken(SeatEntity seatEntity) {
-        //TODO: Must add fields to seatEntity, make sure not to override them. Do like you did with the movieEntity.watched query
     }
 
     private void setSeatToPaid(SeatEntity seatEntity) {

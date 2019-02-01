@@ -48,9 +48,9 @@ public class FilmResource {
     }
 
     @CrossOrigin
-    @GetMapping("/{film_id}")
-    public FilmShowtimes getAllMovieShowtimes(@PathVariable("film_id") String filmId) {
-        return filmService.getAllFilmShowtimes(filmId);
+    @GetMapping("/{cinema_id}/{film_id}")
+    public FilmShowtimes getAllMovieShowtimes(@PathVariable("film_id") String filmId, @PathVariable("cinema_id") String cinemaId) {
+        return filmService.getAllFilmShowtimes(filmId, cinemaId);
     }
 
 

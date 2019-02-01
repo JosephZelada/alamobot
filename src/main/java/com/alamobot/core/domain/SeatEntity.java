@@ -33,7 +33,7 @@ public class SeatEntity {
     private int screenNumber;
     private String seatStyle;
     private String seatDescription;
-    //can be EMPTY (Available), NONE (Not a seat), SOLD (Taken)
+    //can be EMPTY (Available), NONE (Not a seat), SOLD (Someone else bought it), TAKEN (I bought it, someone is sitting in it)
     private String seatStatus;
     private String tableStyle;
     private String warningMessage;
@@ -44,7 +44,7 @@ public class SeatEntity {
     @Override
     public boolean equals(Object o) {
         if(o instanceof SeatEntity) {
-            return ((SeatEntity) o).getSessionId().equals(sessionId);
+            return ((SeatEntity) o).getId().equals(id);
         }
         return false;
     }
