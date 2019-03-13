@@ -1,5 +1,9 @@
 # alamobot
 
+http PUT localhost:8142/alert film_name=='captain marvel' override_seating_algorithm=='false' earliest_showtime=='20:00:00' preferred_cinemas=='0003,0008' latest_showtime=='23:00:00' preferred_days_of_the_week=='WEDNESDAY' seat_count=='20' 
+http GET localhost:8142/alert
+http DELETE localhost:8142/alert/1
+
 Alamobot Checklist:
 1. Whenever 'Watched' is clicked, immediately kick off retrieve scheduled job and refresh page
 2. Show loading wheel when doing long things (purchasing)
@@ -13,6 +17,7 @@ Alamobot Checklist:
 10. Write black box tests so we can be more confident that we're not breaking shit
 11. Look into rxjs debounce to prevent people from continually spamming any of the UI buttons
 12. Figure out how to not show links if a film showtime isn't being watched
+13. Get refreshPostgresContainer task to show up/autocomplete when typing
 
 Avengers Go-Live Checklist:
 1. Able to list/set film names to scan and alert on

@@ -1,5 +1,6 @@
 package com.alamobot.config;
 
+import com.alamobot.services.AlertService;
 import com.alamobot.services.CinemaService;
 import com.alamobot.services.CleanupService;
 import com.alamobot.services.FilmService;
@@ -47,6 +48,11 @@ public class BaseAlamoConfig {
     @Bean
     CinemaService cinemaService() {
         return new CinemaService();
+    }
+
+    @Bean
+    AlertService alertService() {
+        return new AlertService();
     }
 
     @Bean

@@ -15,12 +15,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class CinemaService extends PageableSearchableService {
     @Autowired
     private CinemaRepository cinemaRepository;
     @Autowired
     private MovieRepository movieRepository;
+
+    public boolean allCinemasExist(Set<String> cinemas) {
+        for(String cinemaId: cinemas) {
+            if(!cinemaRepository.findById(cinemaId).isPresent()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public void markCinemaAsViewed(String cinemaId, Boolean watched) {
         Optional<CinemaEntity> cinemaEntityOptional = cinemaRepository.findById(cinemaId);

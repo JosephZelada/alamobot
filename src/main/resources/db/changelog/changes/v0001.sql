@@ -42,6 +42,17 @@ create table format_entity (
   primary key (id)
 );
 
+create table film_alert_entity (
+  id BIGINT NOT NULL,
+  film_name varchar(255),
+  preferred_cinemas varchar(255),
+  earliest_showtime time,
+  latest_showtime time,
+  preferred_days_of_the_week varchar(255),
+  override_seating_algorithm BOOLEAN,
+  primary key (id)
+);
+
 create table seat_entity (
   id varchar(255) NOT NULL,
   session_id BIGINT NOT NULL,

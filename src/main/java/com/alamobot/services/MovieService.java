@@ -4,10 +4,12 @@ import com.alamobot.core.AlamoUrls;
 import com.alamobot.core.api.consume.Movie;
 import com.alamobot.core.api.consume.showtime.MarketContainer;
 import com.alamobot.core.domain.CinemaEntity;
+import com.alamobot.core.domain.FilmAlertEntity;
 import com.alamobot.core.domain.FilmEntity;
 import com.alamobot.core.domain.FormatEntity;
 import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.domain.MovieEntity;
+import com.alamobot.core.persistence.AlertRepository;
 import com.alamobot.core.persistence.CinemaRepository;
 import com.alamobot.core.persistence.FilmRepository;
 import com.alamobot.core.persistence.FormatRepository;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +53,9 @@ public class MovieService {
 
     @Autowired
     private FormatRepository formatRepository;
+
+    @Autowired
+    private AlertRepository alertRepository;
 
     private MovieEntityMapper movieEntityMapper = new MovieEntityMapper(this);
     private RestTemplate restTemplate = new RestTemplate();
@@ -80,6 +86,7 @@ public class MovieService {
         highWatermarkDateMap.putIfAbsent(marketId, LocalDateTime.MIN);
         List<Movie> movieEntities = getMovieListFromServer(marketId);
         log.info("Found " + movieEntities.size() + " relevant films in the " + marketId + " market. Attempting to persist. The current high watermark date for on sale is " + highWatermarkDateMap.get(marketId));
+
         persistMovieList(movieEntities);
     }
 
@@ -109,7 +116,48 @@ public class MovieService {
         for(Movie movie: movieList) {
             MovieEntity movieEntity = convertToMovieEntity(movie);
             movieRepository.save(movieEntity);
+            if(isMovieAlertedOn(movieEntity)) {
+
+            }
         }
+    }
+
+    private boolean isMovieAlertedOn(MovieEntity movieEntity) {
+        for(FilmAlertEntity filmAlertEntity: alertRepository.findAll()) {
+            Optional<FilmEntity> filmEntityOptional = filmRepository.findById(movieEntity.getFilmId());
+            if(!filmEntityOptional.isPresent()) {
+                continue;
+            }
+            FilmEntity filmEntity = filmEntityOptional.get();
+            if(doesFilmAlertMatch(filmEntity, filmAlertEntity)){
+                //Get movie showtimes, cinemas, and seats for ticket
+                List<MovieEntity> movieEntityList = movieRepository.findAllByFilmId(filmEntity.getId());
+                List<MovieEntity> preferredShowtimes = new ArrayList<>();
+                for(MovieEntity currentMovieEntity: movieEntityList) {
+                    if(showtimeIsOnPreferredDayTheaterAndTime(movieEntity, filmAlertEntity))
+                    {
+                        preferredShowtimes.add(currentMovieEntity);
+                    }
+                }
+                //Pick showtime and cinema that matches with preferred days, times, and cinema
+                alertRepository.deleteById(filmAlertEntity.getId());
+            }
+        }
+        return false;
+    }
+
+    private boolean showtimeIsOnPreferredDayTheaterAndTime(MovieEntity movieEntity, FilmAlertEntity filmAlertEntity) {
+        for(DayOfWeek dayOfWeek: filmAlertEntity.getPreferredDaysOfTheWeek()) {
+            if(movieEntity.getSessionDateTime().getDayOfWeek() == dayOfWeek) {
+                //if(filmAlertEntity.getEarliestShowtime() < movieEntity.getSessionDateTime().get)
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean doesFilmAlertMatch(FilmEntity filmEntity, FilmAlertEntity filmAlertEntity) {
+        return false;
     }
 
     private void extractAndPersistHelperObjects(List<Movie> movieList) {

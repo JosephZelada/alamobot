@@ -29,6 +29,9 @@ public class AlamoScheduler {
     @Autowired
     PaymentService paymentService;
 
+    @Autowired
+    AlertService alertService;
+
     @Scheduled(fixedRate = 30000)
     public void getMoviesFromAlamoAndPersist() {
         log.debug("Grabbed movie list from Alamo server and persisted");
@@ -60,5 +63,11 @@ public class AlamoScheduler {
     public void getSeatsNotBoughtThroughAlamoBot() {
         log.debug("Getting seats not bought through AlamoBot to persist");
         paymentService.getBoughtMovieSeatsFromServerAndPersist();
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void checkAndExecuteFilmAlerts() {
+        log.debug("Sifting through alerts and buying showtimes if available");
+        alertService.checkAlertsAndBuyTickets();
     }
 }

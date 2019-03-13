@@ -11,4 +11,6 @@ public interface CinemaRepository extends PagingAndSortingRepository<CinemaEntit
     Page<CinemaEntity> findAllByMarketId(String marketId, Pageable pageable);
 
     Page<CinemaEntity> findAllByIdIn(List<String> ids, Pageable pageable);
+
+
 }

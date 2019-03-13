@@ -28,10 +28,6 @@ public class PaymentResource {
     @CrossOrigin
     @PostMapping("/{session_id}")
     public Boolean getSeatsForSessionId(@PathVariable("session_id") int sessionId, @RequestBody(required=false)ArrayList<Seat> seatsToBuy) {
-        boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy);
-        if(seatsBought) {
-            seatService.markSeatsAsBought(seatsToBuy);
-        }
-        return seatsBought;
+        return paymentService.buySeats(sessionId, seatsToBuy);
     }
 }

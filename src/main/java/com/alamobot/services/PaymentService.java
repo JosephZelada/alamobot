@@ -54,6 +54,8 @@ public class PaymentService {
     @Autowired
     SeatRepository seatRepository;
     @Autowired
+    SeatService seatService;
+    @Autowired
     FilmRepository filmRepository;
     @Autowired
     AlamoScheduler alamoScheduler;
@@ -64,7 +66,7 @@ public class PaymentService {
 
     //TODO: Add tests around this
     //TODO: Do a confirmation through checking accounts
-    public boolean buySeats(int sessionId, ArrayList<Seat> seatsToBuy) {
+    public boolean buySeats(int sessionId, List<Seat> seatsToBuy) {
         String cinemaId = movieRepository.findBySessionId(sessionId).getCinemaId();
         LoyaltyMember loyaltyMember = logInWithWebSession();
         if(loyaltyMember == null) {
@@ -78,7 +80,11 @@ public class PaymentService {
         if(!primeSeatsForSale(sessionId, userSessionId, cinemaId)) {
             return false;
         }
-        return buyTicketsForClaimedSeats(cardWalletToken, loyaltyMember, cinemaId, sessionId);
+        boolean seatsBought = buyTicketsForClaimedSeats(cardWalletToken, loyaltyMember, cinemaId, sessionId);
+        if(seatsBought) {
+            seatService.markSeatsAsBought(seatsToBuy);
+        }
+        return  seatsBought;
     }
 
     private boolean buyTicketsForClaimedSeats(String walletAccessToken, LoyaltyMember loyaltyMember, String cinemaId, int sessionId) {
@@ -132,7 +138,7 @@ public class PaymentService {
         return seatClaimDataContainer != null && seatClaimDataContainer.getError() == null && seatClaimDataContainer.getData().getOrder() != null;
     }
 
-    private boolean assignSeatsToAccount(int sessionId, ArrayList<Seat> seatsToBuy, String userSessionId, String cinemaId) {
+    private boolean assignSeatsToAccount(int sessionId, List<Seat> seatsToBuy, String userSessionId, String cinemaId) {
         String seatChartBaseUrl = AlamoUrls.SEAT_CHART_BASE_URL + cinemaId + "/" + sessionId + "/select?userSessionId=" +userSessionId;
         ArrayList<SeatEssentials> seatEssentialsList = new ArrayList<>();
         seatsToBuy.forEach(seat -> seatEssentialsList.add(SeatEssentials.builder().areaIndex(seat.getAreaIndex()).rowIndex(seat.getRowIndex()).columnIndex(seat.getColumnIndex()).build()));

@@ -8,4 +8,8 @@ import java.util.Set;
 
 public interface FilmRepository extends EntityPagingAndSortingRepository<FilmEntity> {
     Page<FilmEntity> findAllByIdIn(Set<String> idList, Pageable pageable);
+
+    Page<FilmEntity> findAllByNameIsLike(String name, Pageable pageable);
+
+    Page<FilmEntity> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 }

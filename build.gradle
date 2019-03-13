@@ -33,6 +33,7 @@ dependencies {
     compile("org.springframework:spring-web")
     //compile('org.liquibase:liquibase-core')
     compile('org.postgresql:postgresql:42.2.1')
+    compile("commons-beanutils:commons-beanutils:1.9.3")
     compileOnly ("org.projectlombok:lombok:1.16.16")
     testCompile("junit:junit")
     testCompile('org.springframework.boot:spring-boot-starter-test')

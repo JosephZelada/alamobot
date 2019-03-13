@@ -128,7 +128,7 @@ public class SeatService {
         return seatMap;
     }
 
-    public void markSeatsAsBought(ArrayList<Seat> seatsToBuy) {
+    public void markSeatsAsBought(List<Seat> seatsToBuy) {
         List<Integer> seatIdsToBuy = seatsToBuy.stream()
                 .map(seat -> seat.getId())
                 .collect(Collectors.toList());
