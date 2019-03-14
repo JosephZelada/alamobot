@@ -19,7 +19,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -117,40 +119,108 @@ public class AlertService {
             if(validMovieEntityList.isEmpty()) {
                 continue;
             }
-            buyAsManyTicketsAsPossibleUpToAlertAmount(validMovieEntityList, currentFilmAlert);
-            alertRepository.deleteById(currentFilmAlert.getId());
+            boolean ticketsBought = buyAsManyTicketsAsPossibleUpToAlertAmount(validMovieEntityList, currentFilmAlert);
+            if(ticketsBought) {
+                alertRepository.deleteById(currentFilmAlert.getId());
+            }
         }
     }
 
-    private void buyAsManyTicketsAsPossibleUpToAlertAmount(List<MovieEntity> validMovieEntityList, FilmAlertEntity filmAlert) {
+    private boolean buyAsManyTicketsAsPossibleUpToAlertAmount(List<MovieEntity> validMovieEntityList, FilmAlertEntity filmAlert) {
         boolean ticketsBoughtForShowing = false;
         for(MovieEntity movieEntity: validMovieEntityList) {
             int sessionId = movieEntity.getSessionId();
             int seatsLeftToBuy = filmAlert.getSeatCount();
-            while(seatsLeftToBuy > 0) {
-                if(movieEntity.getSeatsLeft() > filmAlert.getSeatCount()) {
-                    List<SeatEntity> seatEntityList = getValidSeatsFromServerFromRow3AndBack(movieEntity);
-                    List<Seat> seatsToBuy = getSeatBatchToBuy(filmAlert, seatEntityList);
-                    boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy);
-                    if(seatsBought) {
-                        seatsLeftToBuy -= seatsToBuy.size();
-                        ticketsBoughtForShowing = true;
-                    }
+            SeatEntity furthestSeatOwned = null;
+            //Need to check with each iteration if the showtime still has seats for us to buy
+            //Once you've started buying tickets in a showtime, don't stop until the seats are all gone or we have all the seats we want
+            List<SeatEntity> seatEntityList;
+            if(filmAlert.getOverrideSeatingAlgorithm()) {
+                seatEntityList = getValidSeatsFromServerWithOverride(movieEntity, furthestSeatOwned);
+            } else {
+                seatEntityList = getValidSeatsFromServerFromRow3AndBack(movieEntity, furthestSeatOwned);
+            }
+            //Need to keep track of seats bought because of the mock
+            Map<Integer, Seat> mockSeatsBought = new HashMap<>();
+            while(seatsLeftToBuy > 0 && (seatEntityList.size() >= seatsLeftToBuy || ticketsBoughtForShowing)) {
+                List<Seat> seatsToBuy;
+                if(paymentService.paymentStubActive) {
+                    seatsToBuy = getMockSeatBatchToBuy(filmAlert, seatEntityList, mockSeatsBought);
                 } else {
-                    break;
+                    seatsToBuy = getSeatBatchToBuy(filmAlert, seatEntityList);
+                }
+                boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy);
+                if(seatsBought) {
+                    seatsLeftToBuy -= seatsToBuy.size();
+                    ticketsBoughtForShowing = true;
+                    if(paymentService.paymentStubActive) {
+                        for(Seat seat: seatsToBuy) {
+                            mockSeatsBought.put(seat.getId(), seat);
+                        }
+                    }
+                    furthestSeatOwned = seatRepository.findById(seatsToBuy.get(seatsToBuy.size() - 1).getId()).get();
+                }
+                //Test here how much faster ticket buys are without persisting seats until the end
+                if(filmAlert.getOverrideSeatingAlgorithm()) {
+                    seatEntityList = getValidSeatsFromServerWithOverride(movieEntity, furthestSeatOwned);
+                } else {
+                    seatEntityList = getValidSeatsFromServerFromRow3AndBack(movieEntity, furthestSeatOwned);
                 }
             }
             if (ticketsBoughtForShowing) {
-                return;
+                break;
             }
         }
+        return ticketsBoughtForShowing;
     }
 
-    private List<SeatEntity> getValidSeatsFromServerFromRow3AndBack(MovieEntity showtime) {
+    private List<SeatEntity> getValidSeatsFromServerFromRow3AndBack(MovieEntity showtime, SeatEntity furthestSeatOwned) {
         seatService.getSeatsFromServerAndPersist(showtime);
-        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndRowIndexGreaterThanEqual(showtime.getSessionId(), "EMPTY", 2);
+        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndSeatBoughtAndRowIndexGreaterThanEqual(showtime.getSessionId(), "EMPTY", false, 2);
         seatEntityList.sort(closestSeatToScreenComparator);
-        return seatEntityList;
+        return getSeatsInGroupsOfTwoOrMore(seatEntityList, furthestSeatOwned);
+    }
+
+    private List<SeatEntity> getValidSeatsFromServerWithOverride(MovieEntity showtime, SeatEntity furthestSeatOwned) {
+        seatService.getSeatsFromServerAndPersist(showtime);
+        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndSeatBought(showtime.getSessionId(), "EMPTY", false);
+        seatEntityList.sort(closestSeatToScreenComparator);
+        return getSeatsInGroupsOfTwoOrMore(seatEntityList, furthestSeatOwned);
+    }
+
+    private List<SeatEntity> getSeatsInGroupsOfTwoOrMore(List<SeatEntity> seatEntityList, SeatEntity furthestSeatOwned) {
+        //Remove any seats that are in groups of 2 or less
+        List<SeatEntity> seatStagingList = new ArrayList<>();
+        if(furthestSeatOwned != null) {
+            seatStagingList.add(furthestSeatOwned);
+        }
+        List<SeatEntity> validSeatEntities = new ArrayList<>();
+        for(SeatEntity currentSeat: seatEntityList) {
+            if(seatStagingList.isEmpty()) {
+                seatStagingList.add(currentSeat);
+            } else {
+                //Get tail of seatStagingList
+                SeatEntity lastStagingSeatEntity = seatStagingList.get(seatStagingList.size() - 1);
+                //Check if currentSeat is next to tail of seatStagingList in theater
+                if(currentSeat.getRowIndex().equals(lastStagingSeatEntity.getRowIndex()) && Math.abs(currentSeat.getColumnIndex() - lastStagingSeatEntity.getColumnIndex()) == 1) {
+                    //If so, add currentSeat to end of seatStagingList
+                    seatStagingList.add(currentSeat);
+                } else {
+                    if(seatStagingList.size() >= 2) {
+                        //Else, check if seatStagingList is 3 or more items long. If so, add seatStagingList to validSeatEntities
+                        validSeatEntities.addAll(seatStagingList);
+                    }
+                    //In all cases, clear out seatStagingList and add currentSeat to seatStagingList, because we are in a new group
+                    seatStagingList.clear();
+                    seatStagingList.add(currentSeat);
+                }
+            }
+        }
+        if(seatStagingList.size() >= 3) {
+            //Else, check if seatStagingList is 3 or more items long. If so, add seatStagingList to validSeatEntities
+            validSeatEntities.addAll(seatStagingList);
+        }
+        return validSeatEntities;
     }
 
     @SneakyThrows
@@ -158,6 +228,22 @@ public class AlertService {
         ArrayList<Seat> seatsToBuy = new ArrayList<>();
         for(SeatEntity seatEntity: seatEntityList) {
             if(seatsToBuy.size() < filmAlert.getSeatCount()) {
+                Seat seat = new Seat();
+                BeanUtils.copyProperties(seat, seatEntity);
+                seatsToBuy.add(seat);
+            }
+            if(seatsToBuy.size() >= 10 || seatsToBuy.size() >= filmAlert.getSeatCount()) {
+                break;
+            }
+        }
+        return seatsToBuy;
+    }
+
+    @SneakyThrows
+    private List<Seat> getMockSeatBatchToBuy(FilmAlertEntity filmAlert, List<SeatEntity> seatEntityList, Map<Integer, Seat> mockSeatsBought) {
+        ArrayList<Seat> seatsToBuy = new ArrayList<>();
+        for(SeatEntity seatEntity: seatEntityList) {
+            if(seatsToBuy.size() < filmAlert.getSeatCount() && mockSeatsBought.get(seatEntity.getId()) == null) {
                 Seat seat = new Seat();
                 BeanUtils.copyProperties(seat, seatEntity);
                 seatsToBuy.add(seat);
@@ -248,9 +334,9 @@ public class AlertService {
         @Override
         public int compare(SeatEntity seatEntity1, SeatEntity seatEntity2) {
             if(seatEntity1.getRowIndex() < seatEntity2.getRowIndex()) {
-                return 1;
-            } else if(seatEntity1.getRowIndex() > seatEntity2.getRowIndex()) {
                 return -1;
+            } else if(seatEntity1.getRowIndex() > seatEntity2.getRowIndex()) {
+                return 1;
             } else {
                 if(seatEntity1.getColumnIndex() < seatEntity2.getColumnIndex()) {
                     return 1;
@@ -267,7 +353,7 @@ public class AlertService {
         @Override
         public int compare(MovieEntity movieEntity1, MovieEntity movieEntity2) {
             if(movieEntity1.getSessionDateTime().isBefore(movieEntity2.getSessionDateTime())) {
-                return -11;
+                return -1;
             } else if(movieEntity1.getSessionDateTime().isAfter(movieEntity2.getSessionDateTime())) {
                 return 1;
             } else {

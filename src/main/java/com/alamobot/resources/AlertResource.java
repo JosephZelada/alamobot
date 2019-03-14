@@ -37,7 +37,7 @@ public class AlertResource {
     }
 
     @CrossOrigin
-    @PutMapping
+    @PostMapping
     public FilmAlertEntity createFilmAlert(@RequestParam("film_name") String filmName,
                                            @RequestParam("preferred_cinemas") Set<String> preferredCinemas,
                                            @RequestParam("earliest_showtime") String earliestShowtimeString,
@@ -53,7 +53,7 @@ public class AlertResource {
     }
 
     @CrossOrigin
-    @PostMapping("/{alert_id}")
+    @PutMapping("/{alert_id}")
     public FilmAlertEntity updateFilmAlert(@PathVariable("alert_id") Integer alertId,
                                            @RequestParam("film_name") String filmName,
                                            @RequestParam("override_seating_algorithm") Boolean overrideSeatingAlgorithm,

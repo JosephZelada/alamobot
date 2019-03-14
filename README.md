@@ -1,6 +1,6 @@
 # alamobot
 
-http PUT localhost:8142/alert film_name=='captain marvel' override_seating_algorithm=='false' earliest_showtime=='20:00:00' preferred_cinemas=='0003,0008' latest_showtime=='23:00:00' preferred_days_of_the_week=='WEDNESDAY' seat_count=='20' 
+http POST localhost:8142/alert film_name=='captain marvel' override_seating_algorithm=='false' earliest_showtime=='20:00:00' preferred_cinemas=='0003,0008' latest_showtime=='23:00:00' preferred_days_of_the_week=='MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY' seat_count=='20' 
 http GET localhost:8142/alert
 http DELETE localhost:8142/alert/1
 

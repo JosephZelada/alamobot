@@ -22,5 +22,7 @@ public interface SeatRepository extends JpaRepository<SeatEntity, Integer> {
 
     List<SeatEntity> findAllBySessionIdAndSeatBought(int sessionId, boolean seatBought);
 
-    List<SeatEntity> findAllBySessionIdAndSeatStatusAndRowIndexGreaterThanEqual(int sessionId, String seatStatus, int rowIndex);
+    List<SeatEntity> findAllBySessionIdAndSeatStatusAndSeatBoughtAndRowIndexGreaterThanEqual(int sessionId, String seatStatus, boolean seatBought, int rowIndex);
+
+    List<SeatEntity> findAllBySessionIdAndSeatStatusAndSeatBought(int sessionId, String seatStatus, boolean seatBought);
 }

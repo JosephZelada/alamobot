@@ -63,6 +63,8 @@ public class PaymentService {
     private String userName;
     @Value("${alamo.password}")
     private String password;
+    @Value("${payments.stub:true}")
+    public boolean paymentStubActive;
 
     //TODO: Add tests around this
     //TODO: Do a confirmation through checking accounts
@@ -84,7 +86,7 @@ public class PaymentService {
         if(seatsBought) {
             seatService.markSeatsAsBought(seatsToBuy);
         }
-        return  seatsBought;
+        return seatsBought;
     }
 
     private boolean buyTicketsForClaimedSeats(String walletAccessToken, LoyaltyMember loyaltyMember, String cinemaId, int sessionId) {
