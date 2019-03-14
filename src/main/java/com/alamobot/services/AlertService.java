@@ -142,7 +142,7 @@ public class AlertService {
             }
             //Need to keep track of seats bought because of the mock
             Map<Integer, Seat> mockSeatsBought = new HashMap<>();
-            while(seatsLeftToBuy > 0 && (seatEntityList.size() >= seatsLeftToBuy || ticketsBoughtForShowing)) {
+            while(seatsLeftToBuy > 0 && (seatEntityList.size() >= seatsLeftToBuy || ticketsBoughtForShowing) && seatEntityList.size() != 0) {
                 List<Seat> seatsToBuy;
                 if(paymentService.paymentStubActive) {
                     seatsToBuy = getMockSeatBatchToBuy(filmAlert, seatEntityList, mockSeatsBought);
@@ -191,9 +191,6 @@ public class AlertService {
     private List<SeatEntity> getSeatsInGroupsOfTwoOrMore(List<SeatEntity> seatEntityList, SeatEntity furthestSeatOwned) {
         //Remove any seats that are in groups of 2 or less
         List<SeatEntity> seatStagingList = new ArrayList<>();
-        if(furthestSeatOwned != null) {
-            seatStagingList.add(furthestSeatOwned);
-        }
         List<SeatEntity> validSeatEntities = new ArrayList<>();
         for(SeatEntity currentSeat: seatEntityList) {
             if(seatStagingList.isEmpty()) {
@@ -202,11 +199,11 @@ public class AlertService {
                 //Get tail of seatStagingList
                 SeatEntity lastStagingSeatEntity = seatStagingList.get(seatStagingList.size() - 1);
                 //Check if currentSeat is next to tail of seatStagingList in theater
-                if(currentSeat.getRowIndex().equals(lastStagingSeatEntity.getRowIndex()) && Math.abs(currentSeat.getColumnIndex() - lastStagingSeatEntity.getColumnIndex()) == 1) {
+                if(seatsAreNextToEachOther(currentSeat, lastStagingSeatEntity)) {
                     //If so, add currentSeat to end of seatStagingList
                     seatStagingList.add(currentSeat);
                 } else {
-                    if(seatStagingList.size() >= 2) {
+                    if(seatStagingList.size() >= 2 || (seatStagingList.size() == 1 && seatsAreNextToEachOther(furthestSeatOwned, seatStagingList.get(0)))) {
                         //Else, check if seatStagingList is 3 or more items long. If so, add seatStagingList to validSeatEntities
                         validSeatEntities.addAll(seatStagingList);
                     }
@@ -221,6 +218,13 @@ public class AlertService {
             validSeatEntities.addAll(seatStagingList);
         }
         return validSeatEntities;
+    }
+
+    private boolean seatsAreNextToEachOther(SeatEntity currentSeat, SeatEntity previousSeat) {
+        if(currentSeat == null || previousSeat == null) {
+            return false;
+        }
+        return currentSeat.getRowIndex().equals(previousSeat.getRowIndex()) && Math.abs(currentSeat.getColumnIndex() - previousSeat.getColumnIndex()) == 1;
     }
 
     @SneakyThrows
