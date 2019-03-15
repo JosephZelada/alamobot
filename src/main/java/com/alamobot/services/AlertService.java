@@ -145,9 +145,9 @@ public class AlertService {
             while(seatsLeftToBuy > 0 && (seatEntityList.size() >= seatsLeftToBuy || ticketsBoughtForShowing) && seatEntityList.size() != 0) {
                 List<Seat> seatsToBuy;
                 if(paymentService.paymentStubActive) {
-                    seatsToBuy = getMockSeatBatchToBuy(filmAlert, seatEntityList, mockSeatsBought);
+                    seatsToBuy = getMockSeatBatchToBuy(seatsLeftToBuy, seatEntityList, mockSeatsBought);
                 } else {
-                    seatsToBuy = getSeatBatchToBuy(filmAlert, seatEntityList);
+                    seatsToBuy = getSeatBatchToBuy(seatsLeftToBuy, seatEntityList);
                 }
                 boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy);
                 if(seatsBought) {
@@ -228,15 +228,15 @@ public class AlertService {
     }
 
     @SneakyThrows
-    private List<Seat> getSeatBatchToBuy(FilmAlertEntity filmAlert, List<SeatEntity> seatEntityList) {
+    private List<Seat> getSeatBatchToBuy(int seatsLeftToBuy, List<SeatEntity> seatEntityList) {
         ArrayList<Seat> seatsToBuy = new ArrayList<>();
         for(SeatEntity seatEntity: seatEntityList) {
-            if(seatsToBuy.size() < filmAlert.getSeatCount()) {
+            if(seatsToBuy.size() < seatsLeftToBuy) {
                 Seat seat = new Seat();
                 BeanUtils.copyProperties(seat, seatEntity);
                 seatsToBuy.add(seat);
             }
-            if(seatsToBuy.size() >= 10 || seatsToBuy.size() >= filmAlert.getSeatCount()) {
+            if(seatsToBuy.size() >= 10 || seatsToBuy.size() >= seatsLeftToBuy) {
                 break;
             }
         }
@@ -244,15 +244,15 @@ public class AlertService {
     }
 
     @SneakyThrows
-    private List<Seat> getMockSeatBatchToBuy(FilmAlertEntity filmAlert, List<SeatEntity> seatEntityList, Map<Integer, Seat> mockSeatsBought) {
+    private List<Seat> getMockSeatBatchToBuy(int seatsLeftToBuy, List<SeatEntity> seatEntityList, Map<Integer, Seat> mockSeatsBought) {
         ArrayList<Seat> seatsToBuy = new ArrayList<>();
         for(SeatEntity seatEntity: seatEntityList) {
-            if(seatsToBuy.size() < filmAlert.getSeatCount() && mockSeatsBought.get(seatEntity.getId()) == null) {
+            if(seatsToBuy.size() < seatsLeftToBuy && mockSeatsBought.get(seatEntity.getId()) == null) {
                 Seat seat = new Seat();
                 BeanUtils.copyProperties(seat, seatEntity);
                 seatsToBuy.add(seat);
             }
-            if(seatsToBuy.size() >= 10 || seatsToBuy.size() >= filmAlert.getSeatCount()) {
+            if(seatsToBuy.size() >= 10 || seatsToBuy.size() >= seatsLeftToBuy) {
                 break;
             }
         }
