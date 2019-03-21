@@ -406,3 +406,22 @@ RESPONSE:
       ]
    }
 }
+
+Windows installation
+Install Docker Toolbox
+Install IntelliJ
+Install Python 
+Install Node version 6
+Install curl
+Install pip
+Install httpie
+Add docker.localhost to etc/hosts
+docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"" postgres-alamobot
+Get IP address from docker-machine ls
+192.168.99.101
+192.168.99.101			docker.localhost
+C:\Windows\System32\drivers\etc\hosts
+
+http POST localhost:8142/alert film_name=="shazam" override_seating_algorithm=="false" earliest_showtime=="15:00:00" preferred_cinemas=="0008" latest_showtime=="16:00:00" preferred_days_of_the_week=="SATURDAY" seat_count=="17" 
+http POST localhost:8142/alert film_name=="endgame" override_seating_algorithm=="false" earliest_showtime=="19:30:00" preferred_cinemas=="0008,0003" latest_showtime=="21:00:00" preferred_days_of_the_week=="THURSDAY" seat_count=="50" 
+http GET localhost:8142/alert

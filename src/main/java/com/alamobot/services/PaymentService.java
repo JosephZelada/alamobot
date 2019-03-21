@@ -93,7 +93,7 @@ public class PaymentService {
         String buyTicketUrl = AlamoUrls.CHECKOUT_BASE_URL + cinemaId + "/" + sessionId;
 
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
-        interceptors.add(new LoggingRequestInterceptor());
+        //interceptors.add(new LoggingRequestInterceptor());
         restTemplate.setInterceptors(interceptors);
 
         PaymentDataRequest paymentDataRequest = PaymentDataRequest.builder()
