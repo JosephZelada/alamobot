@@ -3,12 +3,14 @@ package com.alamobot.config;
 import com.alamobot.services.AlertService;
 import com.alamobot.services.CinemaService;
 import com.alamobot.services.CleanupService;
+import com.alamobot.services.FilmAlertEntityApiMapper;
 import com.alamobot.services.FilmService;
 import com.alamobot.services.MarketService;
 import com.alamobot.services.MovieService;
 import com.alamobot.services.PaymentService;
 import com.alamobot.services.SeatService;
 import com.alamobot.services.mock.MockPaymentService;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,6 +66,16 @@ public class BaseAlamoConfig {
     @Bean
     CleanupService cleanupService() {
         return new CleanupService();
+    }
+
+    @Bean
+    ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+
+    @Bean
+    FilmAlertEntityApiMapper filmAlertEntityApiMapper() {
+        return new FilmAlertEntityApiMapper();
     }
 
     @Bean

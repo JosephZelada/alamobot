@@ -1,5 +1,6 @@
 package com.alamobot.services;
 
+import com.alamobot.core.api.FilmAlert;
 import com.alamobot.core.api.Seat;
 import com.alamobot.core.domain.FilmAlertEntity;
 import com.alamobot.core.domain.FilmEntity;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AlertService {
     @Autowired
@@ -47,11 +49,15 @@ public class AlertService {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private FilmAlertEntityApiMapper filmAlertEntityApiMapper;
+
     private ClosestSeatToScreenComparator closestSeatToScreenComparator = new ClosestSeatToScreenComparator();
     private EarliestShowtimeComparator earliestShowtimeComparator = new EarliestShowtimeComparator();
 
-    public List<FilmAlertEntity> getAllFilmAlerts() {
-        return alertRepository.findAll();
+    public List<FilmAlert> getAllFilmAlerts() {
+        List<FilmAlertEntity> filmAlertEntityList = alertRepository.findAll();
+        return filmAlertEntityList.stream().map(filmAlertEntity -> filmAlertEntityApiMapper.toApi(filmAlertEntity)).collect(Collectors.toList());
     }
 
     public FilmAlertEntity createFilmAlert(String filmName,

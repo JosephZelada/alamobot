@@ -1,6 +1,7 @@
 package com.alamobot.resources;
 
 import com.alamobot.core.ResourcePaths;
+import com.alamobot.core.api.FilmAlert;
 import com.alamobot.core.domain.FilmAlertEntity;
 import com.alamobot.services.AlertService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +32,7 @@ public class AlertResource {
 
     @CrossOrigin
     @GetMapping
-    public List<FilmAlertEntity> getAllFilmsAlerts() {
-
+    public List<FilmAlert> getAllFilmsAlerts() {
         return alertService.getAllFilmAlerts();
     }
 
