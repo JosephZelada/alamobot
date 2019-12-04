@@ -43,8 +43,7 @@ public class CinemaService extends PageableSearchableService {
     }
 
     public List<CinemaEntity> getAllWatchedCinemasForMarket(String marketId) {
-        return null;
-        //return cinemaRepository.findAllByMarketIdAndWatched(marketId);
+        return cinemaRepository.findAllByMarketId(marketId);
     }
 
     public Page<CinemaEntity> getAllCinemasForFilmInMarket(String sortBy,

@@ -1,6 +1,7 @@
 package com.alamobot.resources;
 
 import com.alamobot.core.ResourcePaths;
+import com.alamobot.core.domain.CinemaEntity;
 import com.alamobot.services.CinemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(path = ResourcePaths.CINEMA_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -26,7 +29,7 @@ public class CinemaResource {
 
     @CrossOrigin
     @GetMapping
-    public void getAllWatchedCinemasInMarket(@RequestParam("market_id") String marketId) {
-        cinemaService.getAllWatchedCinemasForMarket(marketId);
+    public List<CinemaEntity> getAllWatchedCinemasInMarket(@RequestParam("market_id") String marketId) {
+        return cinemaService.getAllWatchedCinemasForMarket(marketId);
     }
 }

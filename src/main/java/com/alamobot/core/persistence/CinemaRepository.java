@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface CinemaRepository extends PagingAndSortingRepository<CinemaEntity, String> {
     Page<CinemaEntity> findAllByMarketId(String marketId, Pageable pageable);
 
-/*    List<CinemaEntity> findAllByMarketIdAndWatched(String marketId);*/
+    List<CinemaEntity> findAllByMarketId(String marketId);
 
     Page<CinemaEntity> findAllByIdIn(List<String> ids, Pageable pageable);
 
