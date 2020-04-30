@@ -3,12 +3,14 @@ package com.alamobot.core.domain;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Data
+@EqualsAndHashCode(of = "id")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,12 +42,4 @@ public class SeatEntity {
     private int warningCode;
     private boolean seatBought;
     private String personInSeat;
-
-    @Override
-    public boolean equals(Object o) {
-        if(o instanceof SeatEntity) {
-            return ((SeatEntity) o).getId().equals(id);
-        }
-        return false;
-    }
 }

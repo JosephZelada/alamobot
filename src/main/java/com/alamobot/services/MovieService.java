@@ -57,12 +57,13 @@ public class MovieService {
     @Autowired
     private AlertRepository alertRepository;
 
-    private MovieEntityMapper movieEntityMapper = new MovieEntityMapper(this);
-    private RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private HighWatermarkService highWatermarkService;
 
-    @Getter
-    @Setter
-    private Map<String, LocalDateTime> highWatermarkDateMap = new HashMap<>();
+    @Autowired
+    private MovieEntityMapper movieEntityMapper;
+
+    private RestTemplate restTemplate = new RestTemplate();
 
     public void markMovieAsViewed(int sessionId, Boolean watched) {
         Optional<MovieEntity> movieEntityOptional = movieRepository.findById(sessionId);
@@ -83,9 +84,12 @@ public class MovieService {
     }
 
     private void getMovieListFromServerAndPersistForMarket(String marketId) {
-        highWatermarkDateMap.putIfAbsent(marketId, LocalDateTime.MIN);
+        LocalDateTime marketHighWatermark = highWatermarkService.updateHighWatermarkForMarket(marketId);
         List<Movie> movieEntities = getMovieListFromServer(marketId);
-        log.info("Found " + movieEntities.size() + " relevant films in the " + marketId + " market. Attempting to persist. The current high watermark date for on sale is " + highWatermarkDateMap.get(marketId));
+        log.info("Found {} relevant films in the {} market. Attempting to persist. The current high watermark date for on sale is {}",
+                movieEntities.size(),
+                marketId,
+                marketHighWatermark);
 
         persistMovieList(movieEntities);
     }

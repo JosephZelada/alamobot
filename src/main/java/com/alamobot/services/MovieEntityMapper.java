@@ -12,6 +12,8 @@ import com.alamobot.core.domain.FilmEntity;
 import com.alamobot.core.domain.FormatEntity;
 import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.domain.MovieEntity;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,19 +21,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class MovieEntityMapper {
-    private MovieService movieService;
+@NoArgsConstructor
+public class MovieEntityMapper {
+    @Autowired
+    private HighWatermarkService highWatermarkService;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final String ON_SALE_TAG = "onsale";
-
-    MovieEntityMapper(MovieService movieService) {
-        this.movieService = movieService;
-    }
 
     List<Movie> marketToMovieList(MarketContainer marketContainer) {
         Market market = marketContainer.getMarket();
         String marketId = market.getMarketId();
-        LocalDateTime highWatermarkDate = movieService.getHighWatermarkDateMap().get(market.getMarketId());
+        LocalDateTime highWatermarkDate = highWatermarkService.getHighWatermarkForMarket(market.getMarketId());
         List<Movie> movieList = market.getDates().stream()
                 .filter(filmDate -> !LocalDate.parse(filmDate.getDateId(), formatter).atStartOfDay().isBefore(highWatermarkDate))
                 .flatMap(filmDate -> filmDate.getCinemas().stream()
@@ -60,7 +60,7 @@ class MovieEntityMapper {
 
     //TODO: Maybe try to replace for loop with streams, kinda difficult
     private void updateMovieServiceWithNewHighWatermarkDate(List<Movie> movieList, String marketId) {
-        LocalDateTime localHighWatermarkDate = movieService.getHighWatermarkDateMap().get(marketId);
+        LocalDateTime localHighWatermarkDate = highWatermarkService.getHighWatermarkForMarket(marketId);
         for(Movie movie: movieList) {
             if(doesHighWatermarkDateNeedToBeUpdated(movie.getSessionDateTime(), localHighWatermarkDate, movie.getFilm().getName(), movie.getSessionStatus())) {
                 localHighWatermarkDate = movie.getSessionDateTime();
@@ -73,7 +73,7 @@ class MovieEntityMapper {
 //                .orElse(Movie.builder().sessionDateTime(movieService.getHighWatermarkDate()).build())
 //                .getSessionDateTime();
 
-        movieService.getHighWatermarkDateMap().put(marketId, localHighWatermarkDate);
+        highWatermarkService.updateHighWatermarkForMarket(marketId, localHighWatermarkDate);
     }
 
     MovieEntity movieToMovieEntity(Movie movie) {
@@ -90,7 +90,7 @@ class MovieEntityMapper {
     }
 
     private boolean movieDateTimeIsBeforeCurrentHighWatermarkDate(LocalDateTime movieDateTime, String marketId) {
-        return movieDateTime.isBefore(movieService.getHighWatermarkDateMap().get(marketId));
+        return movieDateTime.isBefore(highWatermarkService.getHighWatermarkForMarket(marketId));
     }
 
     private boolean doesHighWatermarkDateNeedToBeUpdated(LocalDateTime movieDateTime, LocalDateTime localHighWatermarkDate, String filmName, String sessionStatus) {

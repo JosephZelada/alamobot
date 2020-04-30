@@ -5,7 +5,9 @@ import com.alamobot.services.CinemaService;
 import com.alamobot.services.CleanupService;
 import com.alamobot.services.FilmAlertEntityApiMapper;
 import com.alamobot.services.FilmService;
+import com.alamobot.services.HighWatermarkService;
 import com.alamobot.services.MarketService;
+import com.alamobot.services.MovieEntityMapper;
 import com.alamobot.services.MovieService;
 import com.alamobot.services.PaymentService;
 import com.alamobot.services.SeatService;
@@ -58,6 +60,16 @@ public class BaseAlamoConfig {
     }
 
     @Bean
+    HighWatermarkService highWatermarkService() {
+        return new HighWatermarkService();
+    }
+
+    @Bean
+    MovieEntityMapper movieEntityMapper() {
+        return new MovieEntityMapper();
+    }
+
+    @Bean
     @ConditionalOnProperty(value="payments.stub", havingValue = "false", matchIfMissing = true)
     PaymentService paymentService() {
         return new PaymentService();
@@ -82,6 +94,7 @@ public class BaseAlamoConfig {
     RestTemplate restTemplate() {
         return new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
     }
+
 
     @Bean
     @ConditionalOnProperty(value="payments.stub")

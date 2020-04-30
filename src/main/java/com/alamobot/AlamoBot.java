@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EntityScan("com.alamobot")
-@ComponentScan("com.alamobot")
 @EnableScheduling
 public class AlamoBot {
 
