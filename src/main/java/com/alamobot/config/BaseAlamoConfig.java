@@ -1,5 +1,6 @@
 package com.alamobot.config;
 
+import com.alamobot.client.AlamoMovieClient;
 import com.alamobot.services.AlertService;
 import com.alamobot.services.CinemaService;
 import com.alamobot.services.CleanupService;
@@ -13,6 +14,7 @@ import com.alamobot.services.PaymentService;
 import com.alamobot.services.SeatService;
 import com.alamobot.services.mock.MockPaymentService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,6 +69,16 @@ public class BaseAlamoConfig {
     @Bean
     MovieEntityMapper movieEntityMapper() {
         return new MovieEntityMapper();
+    }
+
+    @Autowired
+    AlamoMovieClient alamoMovieClient() {
+        return new AlamoMovieClient();
+    }
+
+    @Autowired
+    RestTemplate simpleRestTemplate() {
+        return new RestTemplate();
     }
 
     @Bean

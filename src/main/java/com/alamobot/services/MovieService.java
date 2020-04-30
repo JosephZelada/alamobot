@@ -1,5 +1,6 @@
 package com.alamobot.services;
 
+import com.alamobot.client.AlamoMovieClient;
 import com.alamobot.core.AlamoUrls;
 import com.alamobot.core.api.consume.Movie;
 import com.alamobot.core.api.consume.showtime.MarketContainer;
@@ -63,7 +64,8 @@ public class MovieService {
     @Autowired
     private MovieEntityMapper movieEntityMapper;
 
-    private RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private AlamoMovieClient alamoMovieClient;
 
     public void markMovieAsViewed(int sessionId, Boolean watched) {
         Optional<MovieEntity> movieEntityOptional = movieRepository.findById(sessionId);
@@ -85,32 +87,14 @@ public class MovieService {
 
     private void getMovieListFromServerAndPersistForMarket(String marketId) {
         LocalDateTime marketHighWatermark = highWatermarkService.updateHighWatermarkForMarket(marketId);
-        List<Movie> movieEntities = getMovieListFromServer(marketId);
+        MarketContainer marketContainer = alamoMovieClient.getMovieListFromServer(marketId);
+        List<Movie> movieEntities = movieEntityMapper.marketToMovieList(marketContainer);
         log.info("Found {} relevant films in the {} market. Attempting to persist. The current high watermark date for on sale is {}",
                 movieEntities.size(),
                 marketId,
                 marketHighWatermark);
 
         persistMovieList(movieEntities);
-    }
-
-    private List<Movie> getMovieListFromServer(String marketId) {
-        String getMarketDetailsUrl = AlamoUrls.SHOWTIMES_FOR_MARKET_BASE_URL + marketId + "/";
-
-        //TODO: Maybe swap restTemplate out with Feign?
-        ResponseEntity<MarketContainer> marketContainerResponse =
-                restTemplate.exchange(
-                        getMarketDetailsUrl,
-                        HttpMethod.GET,
-                        null,
-                        MarketContainer.class
-                );
-        MarketContainer marketContainer = marketContainerResponse.getBody();
-        if(marketContainer == null) {
-            log.info("No data received for market with ID " + marketId +" skipping");
-            return new ArrayList<>();
-        }
-        return movieEntityMapper.marketToMovieList(marketContainer);
     }
 
     @Transactional
