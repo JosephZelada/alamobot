@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Entity
 public class MovieEntity {
     @Id
-    private int sessionId;
+    private Integer sessionId;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime sessionDateTime;
     private String sessionStatus;
@@ -31,6 +31,6 @@ public class MovieEntity {
     private String cinemaId;
     private String filmId;
     private String formatId;
-    private int seatsLeft;
+    private Integer seatsLeft;
     private Boolean watched;
 }
