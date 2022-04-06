@@ -32,6 +32,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -347,6 +348,6 @@ public class PaymentService {
     }
 
     private boolean showtimeHasNotPassedOrBeenRefunded(Purchase purchase) {
-        return !purchase.isRefunded() && (purchase.getSessionDateTimeClt().isAfter(LocalDateTime.now()));
+        return !purchase.isRefunded() && (purchase.getSessionDateTimeClt().isAfter(ZonedDateTime.now()));
     }
 }

@@ -18,13 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AlertService {
@@ -52,6 +46,8 @@ public class AlertService {
     @Autowired
     private FilmAlertEntityApiMapper filmAlertEntityApiMapper;
 
+    private final List<String> SEAT_STYLES_TO_EXCLUDE = Arrays.asList("HANDICAP", "COMPANION");
+
     private ClosestSeatToScreenComparator closestSeatToScreenComparator = new ClosestSeatToScreenComparator();
     private EarliestShowtimeComparator earliestShowtimeComparator = new EarliestShowtimeComparator();
 
@@ -70,25 +66,15 @@ public class AlertService {
         if(!cinemaService.allCinemasExist(preferredCinemas)) {
             return null;
         }
-        FilmAlertEntity filmAlertEntity = alertRepository.findByFilmNameContainingIgnoreCase(filmName);
-        if(filmAlertEntity != null) {
-            filmAlertEntity.setPreferredCinemas(preferredCinemas);
-            filmAlertEntity.setEarliestShowtime(earliestShowtime);
-            filmAlertEntity.setLatestShowtime(latestShowtime);
-            filmAlertEntity.setPreferredDaysOfTheWeek(preferredDaysOfTheWeek);
-            filmAlertEntity.setOverrideSeatingAlgorithm(overrideSeatingAlgorithm);
-            filmAlertEntity.setSeatCount(seatCount);
-        } else {
-            filmAlertEntity = FilmAlertEntity.builder()
-                    .filmName(filmName)
-                    .overrideSeatingAlgorithm(overrideSeatingAlgorithm)
-                    .preferredCinemas(preferredCinemas)
-                    .earliestShowtime(earliestShowtime)
-                    .latestShowtime(latestShowtime)
-                    .preferredDaysOfTheWeek(preferredDaysOfTheWeek)
-                    .seatCount(seatCount)
-                    .build();
-        }
+        FilmAlertEntity filmAlertEntity = FilmAlertEntity.builder()
+                .filmName(filmName)
+                .overrideSeatingAlgorithm(overrideSeatingAlgorithm)
+                .preferredCinemas(preferredCinemas)
+                .earliestShowtime(earliestShowtime)
+                .latestShowtime(latestShowtime)
+                .preferredDaysOfTheWeek(preferredDaysOfTheWeek)
+                .seatCount(seatCount)
+                .build();
         return alertRepository.save(filmAlertEntity);
     }
 
@@ -182,14 +168,14 @@ public class AlertService {
 
     private List<SeatEntity> getValidSeatsFromServerFromRow3AndBack(MovieEntity showtime, SeatEntity furthestSeatOwned) {
         seatService.getSeatsFromServerAndPersist(showtime);
-        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndSeatBoughtAndRowIndexGreaterThanEqual(showtime.getSessionId(), "EMPTY", false, 2);
+        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndSeatBoughtAndRowIndexGreaterThanEqualAndSeatStyleNotIn(showtime.getSessionId(), "EMPTY", false, 2, SEAT_STYLES_TO_EXCLUDE);
         seatEntityList.sort(closestSeatToScreenComparator);
         return getSeatsInGroupsOfTwoOrMore(seatEntityList, furthestSeatOwned);
     }
 
     private List<SeatEntity> getValidSeatsFromServerWithOverride(MovieEntity showtime, SeatEntity furthestSeatOwned) {
         seatService.getSeatsFromServerAndPersist(showtime);
-        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndSeatBought(showtime.getSessionId(), "EMPTY", false);
+        List<SeatEntity> seatEntityList = seatRepository.findAllBySessionIdAndSeatStatusAndSeatBoughtAndSeatStyleNotIn(showtime.getSessionId(), "EMPTY", false, SEAT_STYLES_TO_EXCLUDE);
         seatEntityList.sort(closestSeatToScreenComparator);
         return getSeatsInGroupsOfTwoOrMore(seatEntityList, furthestSeatOwned);
     }

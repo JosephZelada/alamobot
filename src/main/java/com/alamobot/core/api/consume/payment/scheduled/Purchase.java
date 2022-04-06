@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @JsonIgnoreProperties
 @Data
@@ -20,5 +21,5 @@ public class Purchase {
     private String filmHoCode;
     private String marketId;
     private boolean isRefunded;
-    private LocalDateTime sessionDateTimeClt;
+    private ZonedDateTime sessionDateTimeClt;
 }
