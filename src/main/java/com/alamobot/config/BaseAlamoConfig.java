@@ -71,12 +71,12 @@ public class BaseAlamoConfig {
         return new MovieEntityMapper();
     }
 
-    @Autowired
+    @Bean
     AlamoMovieClient alamoMovieClient() {
         return new AlamoMovieClient();
     }
 
-    @Autowired
+    @Bean
     RestTemplate simpleRestTemplate() {
         return new RestTemplate();
     }

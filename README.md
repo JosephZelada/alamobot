@@ -1,8 +1,39 @@
 # alamobot
 
+Add an in_progress flag to film alerts that gets set to true when a film alert starts processing and set to false when it's done. The scheduler should skip film alerts that are in progress, preventing alamobot from trying to buy tickets to fill an alert it's already trying to fill
+
+Enable multiple alerts for the same movie
+FIGURE OUT WHY THIS HAPPENS EVERY Alamobot tries to pull down already bought seats
+
+Create a flag that will force alamobot to skip showings that have less than the amount of desired required tickets, default to off
+
+MAKE SURE TO FORCE ALAMOBOT TO BUY AS MANY TICKETS AS POSSIBLE, EVEN IF THEY AREN'T ALL AVAILABLE
+Make alert times inclusive, not exclusive
+## Windows installation
+Install SkyUX with prerequisites here
+https://developer.blackbaud.com/skyux/learn/get-started/prereqs
+Ignore windows-build-tools, they don't seem to be necessary
+Install Java 8
+Install Docker Toolbox
+Install IntelliJ
+Install Python
+Install Node version 6
+Install curl
+Install pip
+Install httpie
+Add docker.localhost to etc/hosts
+docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" postgres-alamobot
+Get IP address from docker-machine ls
+192.168.99.101
+192.168.99.101			docker.localhost
+C:\Windows\System32\drivers\etc\hosts
+
 http POST localhost:8142/alert film_name=='life of pi' override_seating_algorithm=='false' earliest_showtime=='20:00:00' preferred_cinemas=='0003,0008' latest_showtime=='23:00:00' preferred_days_of_the_week=='MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY' seat_count=='20' 
 http GET localhost:8142/alert
 http DELETE localhost:8142/alert/1
+http POST localhost:8142/alert film_name=="shazam" override_seating_algorithm=="false" earliest_showtime=="15:00:00" preferred_cinemas=="0008" latest_showtime=="16:00:00" preferred_days_of_the_week=="SATURDAY" seat_count=="17"
+http POST localhost:8142/alert film_name=="endgame" override_seating_algorithm=="false" earliest_showtime=="19:30:00" preferred_cinemas=="0008,0003" latest_showtime=="21:00:00" preferred_days_of_the_week=="THURSDAY" seat_count=="50"
+http GET localhost:8142/alert
 
 Alamobot Checklist:
 1. Whenever 'Watched' is clicked, immediately kick off retrieve scheduled job and refresh page
@@ -391,22 +422,3 @@ RESPONSE:
       ]
    }
 }
-
-Windows installation
-Install Docker Toolbox
-Install IntelliJ
-Install Python 
-Install Node version 6
-Install curl
-Install pip
-Install httpie
-Add docker.localhost to etc/hosts
-docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"" postgres-alamobot
-Get IP address from docker-machine ls
-192.168.99.101
-192.168.99.101			docker.localhost
-C:\Windows\System32\drivers\etc\hosts
-
-http POST localhost:8142/alert film_name=="shazam" override_seating_algorithm=="false" earliest_showtime=="15:00:00" preferred_cinemas=="0008" latest_showtime=="16:00:00" preferred_days_of_the_week=="SATURDAY" seat_count=="17" 
-http POST localhost:8142/alert film_name=="endgame" override_seating_algorithm=="false" earliest_showtime=="19:30:00" preferred_cinemas=="0008,0003" latest_showtime=="21:00:00" preferred_days_of_the_week=="THURSDAY" seat_count=="50" 
-http GET localhost:8142/alert

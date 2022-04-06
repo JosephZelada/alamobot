@@ -1,3 +1,13 @@
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+}
+
 buildscript {
     repositories {
         mavenCentral()
@@ -8,7 +18,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.3.RELEASE")
-        classpath 'com.bmuschko:gradle-docker-plugin:3.4.4'
+        classpath 'com.bmuschko:gradle-docker-plugin:7.1.0'
         //classpath ("org.liquibase:liquibase-gradle-plugin:1.2.4")
     }
 }
@@ -25,8 +35,8 @@ bootJar {
     version =  '0.1.0'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.11
+targetCompatibility = 1.11
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
@@ -38,7 +48,10 @@ dependencies {
     compile("commons-beanutils:commons-beanutils:1.9.3")
     compile("org.modelmapper:modelmapper:2.3.2")
     compile('com.google.guava:guava:27.1-jre')
+    compile('javax.xml.bind:jaxb-api:2.3.1')
+    compile('org.javassist:javassist:3.25.0-GA')
     compileOnly ("org.projectlombok:lombok:1.16.16")
+    annotationProcessor ("org.projectlombok:lombok:1.18.22")
     testCompile("org.springframework.boot:spring-boot-starter-data-jpa")
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('junit:junit:4.12')
@@ -56,8 +69,7 @@ import com.bmuschko.gradle.docker.tasks.container.*
 
 // Use task types
 task pullPostgresImage(type: DockerPullImage) {
-    repository = 'postgres'
-    tag = '9.4'
+    image = 'postgres:9.6'
 }
 
 task createPostgresContainer(type: DockerCreateContainer) {
@@ -66,11 +78,11 @@ task createPostgresContainer(type: DockerCreateContainer) {
             throw exception
     }
     dependsOn pullPostgresImage
-    targetImageId { pullPostgresImage.getImageId() }
+    targetImageId 'postgres:9.6'
     withEnvVar('POSTGRES_PASSWORD', 'postgres')
     withEnvVar('POSTGRES_USER', 'postgres')
     withEnvVar('POSTGRES_DB', 'alamobot')
-    portBindings = ['5432:5432']
+    hostConfig.portBindings = ['5432:5432']
     //envVars = ['POSTGRES_PASSWORD:postgres', 'POSTGRES_USER:postgres', 'POSTGRES_DB:alamobot']
     containerName = 'postgres-alamobot'
 //    doFirst{
