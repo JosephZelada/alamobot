@@ -10,4 +10,8 @@ public class AlamoUrls {
     public static final String CHECKOUT_BASE_URL = "https://drafthouse.com/s/mother/v1/app/checkout/";
     public static final String PAYMENT_HISTORY_BASE_URL = "https://drafthouse.com/s/mother/v1/purchase-history";
     public static final String TICKET_SEATING_CONFIRMATION_BASE_URL = "https://drafthouse.com/s/mother/v1/app/confirmation/";
+    public static final String MARKET_WITH_QUEUES_BASE_URL = "https://drafthouse.com/s/mother/v2/schedule/session/";
+    public static final String QUEUE_BASE_URL = "https://queue.drafthouse.com/s/queue/v1/";
+    public static final String QUEUE_REGISTRATION_URL = QUEUE_BASE_URL + "queue/";
+    public static final String QUEUE_TOKEN_URL = QUEUE_BASE_URL + "member/";
 }

@@ -24,9 +24,11 @@ import com.alamobot.core.persistence.SeatRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
@@ -34,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +47,6 @@ public class PaymentService {
 
     @Autowired
     private RestTemplate restTemplate;
-    @Autowired
-    private HttpHeaders httpHeaders;
     @Autowired
     private HttpEntity<String> noBodyHttpEntity;
     @Autowired
@@ -69,7 +70,7 @@ public class PaymentService {
 
     //TODO: Add tests around this
     //TODO: Do a confirmation through checking accounts
-    public boolean buySeats(int sessionId, List<Seat> seatsToBuy) {
+    public boolean buySeats(int sessionId, List<Seat> seatsToBuy, QueueAuthorization queueAuthorization, String marketSlug) {
         String cinemaId = movieRepository.findBySessionId(sessionId).getCinemaId();
         LoyaltyMember loyaltyMember = logInWithWebSession();
         if(loyaltyMember == null) {
@@ -77,20 +78,37 @@ public class PaymentService {
         }
         String userSessionId = loyaltyMember.getUserSessionId();
         String cardWalletToken = getCardWalletToken(userSessionId);
-        if(!assignSeatsToAccount(sessionId, seatsToBuy, userSessionId, cinemaId)) {
+        HttpHeaders httpHeaders = httpHeaders(userSessionId, queueAuthorization, marketSlug);
+        if(!assignSeatsToAccount(sessionId, seatsToBuy, userSessionId, cinemaId, httpHeaders)) {
             return false;
         }
-        if(!primeSeatsForSale(sessionId, userSessionId, cinemaId)) {
+        if(!primeSeatsForSale(sessionId, userSessionId, cinemaId, httpHeaders)) {
             return false;
         }
-        boolean seatsBought = buyTicketsForClaimedSeats(cardWalletToken, loyaltyMember, cinemaId, sessionId);
+        boolean seatsBought = buyTicketsForClaimedSeats(cardWalletToken, loyaltyMember, cinemaId, sessionId, httpHeaders);
         if(seatsBought) {
             seatService.markSeatsAsBought(seatsToBuy);
         }
         return seatsBought;
     }
 
-    private boolean buyTicketsForClaimedSeats(String walletAccessToken, LoyaltyMember loyaltyMember, String cinemaId, int sessionId) {
+    HttpHeaders httpHeaders(String userSessionId, QueueAuthorization queueAuthorization, String marketSlug) {
+        HttpHeaders headers = new HttpHeaders();
+        ArrayList<MediaType> mediaTypes = new ArrayList<>();
+        mediaTypes.add(MediaType.APPLICATION_JSON);
+        mediaTypes.add(MediaType.ALL);
+        mediaTypes.add(MediaType.TEXT_PLAIN);
+        headers.setAccept(mediaTypes);
+        headers.setConnection("keep-alive");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("User-Agent", "chrome");
+        if (queueAuthorization.isQueueAuthorizationPopulated()) {
+            headers.set(HttpHeaders.COOKIE, "exp_alamo_market_2=" + marketSlug + ";alamo_user_session_id=" + userSessionId + "")
+        }
+        return headers;
+    }
+
+    private boolean buyTicketsForClaimedSeats(String walletAccessToken, LoyaltyMember loyaltyMember, String cinemaId, int sessionId, , HttpHeaders httpHeaders) {
         String buyTicketUrl = AlamoUrls.CHECKOUT_BASE_URL + cinemaId + "/" + sessionId;
 
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
@@ -126,7 +144,7 @@ public class PaymentService {
         return paymentDataResponseContainer != null && paymentDataResponseContainer.getData() != null && paymentDataResponseContainer.getError() == null && !paymentDataResponseContainer.getData().getPaymentResult().getVistaBookingId() .equals("");
     }
 
-    private boolean primeSeatsForSale(int sessionId, String userSessionId, String cinemaId) {
+    private boolean primeSeatsForSale(int sessionId, String userSessionId, String cinemaId, HttpHeaders httpHeaders) {
         String checkoutUrl = AlamoUrls.CHECKOUT_BASE_URL + cinemaId + "/" + sessionId + "?userSessionId=" +userSessionId;
 
         ResponseEntity<SeatClaimDataContainer> seatClaimResponse =
@@ -141,7 +159,11 @@ public class PaymentService {
         return seatClaimDataContainer != null && seatClaimDataContainer.getError() == null && seatClaimDataContainer.getData().getOrder() != null;
     }
 
-    private boolean assignSeatsToAccount(int sessionId, List<Seat> seatsToBuy, String userSessionId, String cinemaId) {
+    private boolean assignSeatsToAccount(int sessionId,
+                                         List<Seat> seatsToBuy,
+                                         String userSessionId,
+                                         String cinemaId,
+                                         HttpHeaders httpHeaders) {
         String seatChartBaseUrl = AlamoUrls.SEAT_CHART_BASE_URL + cinemaId + "/" + sessionId + "/select?userSessionId=" +userSessionId;
         ArrayList<SeatEssentials> seatEssentialsList = new ArrayList<>();
         seatsToBuy.forEach(seat -> seatEssentialsList.add(SeatEssentials.builder().areaIndex(seat.getAreaIndex()).rowIndex(seat.getRowIndex()).columnIndex(seat.getColumnIndex()).build()));

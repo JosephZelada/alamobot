@@ -32,4 +32,5 @@ public class FilmAlertEntity {
     private Set<DayOfWeek> preferredDaysOfTheWeek;
     private Boolean overrideSeatingAlgorithm;
     private Integer seatCount;
+    private Integer seatsQueuedFor;
 }

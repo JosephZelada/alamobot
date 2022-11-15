@@ -50,7 +50,9 @@ create table film_alert_entity (
   latest_showtime time,
   preferred_days_of_the_week varchar(255),
   override_seating_algorithm BOOLEAN,
-  primary key (id)
+  primary key (id),
+  seat_number SMALLINT,
+  seats_queued_for SMALLINT
 );
 
 create table seat_entity (

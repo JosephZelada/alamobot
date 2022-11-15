@@ -11,6 +11,7 @@ import com.alamobot.services.MarketService;
 import com.alamobot.services.MovieEntityMapper;
 import com.alamobot.services.MovieService;
 import com.alamobot.services.PaymentService;
+import com.alamobot.services.QueueService;
 import com.alamobot.services.SeatService;
 import com.alamobot.services.mock.MockPaymentService;
 import org.modelmapper.ModelMapper;
@@ -59,6 +60,11 @@ public class BaseAlamoConfig {
     @Bean
     AlertService alertService() {
         return new AlertService();
+    }
+
+    @Bean
+    QueueService queueService() {
+        return new QueueService();
     }
 
     @Bean

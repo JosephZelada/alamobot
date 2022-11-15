@@ -2,18 +2,23 @@ package com.alamobot.services;
 
 import com.alamobot.core.api.FilmAlert;
 import com.alamobot.core.api.Seat;
+import com.alamobot.core.api.consume.market.MarketDataContainer;
 import com.alamobot.core.domain.FilmAlertEntity;
 import com.alamobot.core.domain.FilmEntity;
+import com.alamobot.core.domain.MarketEntity;
 import com.alamobot.core.domain.MovieEntity;
 import com.alamobot.core.domain.SeatEntity;
 import com.alamobot.core.persistence.AlertRepository;
 import com.alamobot.core.persistence.FilmRepository;
+import com.alamobot.core.persistence.MarketRepository;
 import com.alamobot.core.persistence.MovieRepository;
 import com.alamobot.core.persistence.SeatRepository;
 import lombok.SneakyThrows;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -35,6 +40,9 @@ public class AlertService {
     private MovieRepository movieRepository;
 
     @Autowired
+    private MarketRepository marketRepository;
+
+    @Autowired
     private SeatService seatService;
 
     @Autowired
@@ -42,6 +50,9 @@ public class AlertService {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private QueueService queueService;
 
     @Autowired
     private FilmAlertEntityApiMapper filmAlertEntityApiMapper;
@@ -120,6 +131,7 @@ public class AlertService {
 
     private boolean buyAsManyTicketsAsPossibleUpToAlertAmount(List<MovieEntity> validMovieEntityList, FilmAlertEntity filmAlert) {
         boolean ticketsBoughtForShowing = false;
+        MarketEntity marketEntity = marketRepository.findById(validMovieEntityList.get(0).getMarketId()).get();
         for(MovieEntity movieEntity: validMovieEntityList) {
             int sessionId = movieEntity.getSessionId();
             int seatsLeftToBuy = filmAlert.getSeatCount();
@@ -134,14 +146,17 @@ public class AlertService {
             }
             //Need to keep track of seats bought because of the mock
             Map<Integer, Seat> mockSeatsBought = new HashMap<>();
-            while(seatsLeftToBuy > 0 && (seatEntityList.size() >= seatsLeftToBuy || ticketsBoughtForShowing) && seatEntityList.size() != 0) {
+            while(shouldBuyMoreSeats(filmAlert, seatsLeftToBuy, seatEntityList, ticketsBoughtForShowing)) {
                 List<Seat> seatsToBuy;
                 if(paymentService.paymentStubActive) {
                     seatsToBuy = getMockSeatBatchToBuy(seatsLeftToBuy, seatEntityList, mockSeatsBought);
                 } else {
                     seatsToBuy = getSeatBatchToBuy(seatsLeftToBuy, seatEntityList);
                 }
-                boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy);
+                filmAlert.setSeatsQueuedFor(filmAlert.getSeatsQueuedFor() + seatsToBuy.size());
+                alertRepository.save(filmAlert);
+                QueueAuthorization queueAuthorization = queueService.queueForTicket(movieEntity);
+                boolean seatsBought = paymentService.buySeats(sessionId, seatsToBuy, queueAuthorization, marketEntity.getSlug());
                 if(seatsBought) {
                     seatsLeftToBuy -= seatsToBuy.size();
                     ticketsBoughtForShowing = true;
@@ -150,8 +165,12 @@ public class AlertService {
                             mockSeatsBought.put(seat.getId(), seat);
                         }
                     }
+                    filmAlert.setSeatCount(seatsLeftToBuy);
                     furthestSeatOwned = seatRepository.findById(seatsToBuy.get(seatsToBuy.size() - 1).getId()).get();
+                } else {
+                    filmAlert.setSeatsQueuedFor(filmAlert.getSeatsQueuedFor() - seatsToBuy.size());
                 }
+                alertRepository.save(filmAlert);
                 //Test here how much faster ticket buys are without persisting seats until the end
                 if(filmAlert.getOverrideSeatingAlgorithm()) {
                     seatEntityList = getValidSeatsFromServerWithOverride(movieEntity, furthestSeatOwned);
@@ -164,6 +183,24 @@ public class AlertService {
             }
         }
         return ticketsBoughtForShowing;
+    }
+
+    private boolean shouldBuyMoreSeats(FilmAlertEntity filmAlert, Integer seatsLeftToBuy, List<SeatEntity> seatEntityList, boolean ticketsBoughtForShowing) {
+        return seatsQueuedForDoesNotExceedTotalSeatsNeeded(filmAlert) &&
+                (
+                        validSeatsLeftInTheaterAreGreaterThanAmountOfSeatsStillNeeded(seatsLeftToBuy, seatEntityList) ||
+                                ticketsBoughtForShowing
+                ) &&
+                seatsLeftToBuy > 0 &&
+                seatEntityList.size() != 0;
+    }
+
+    private boolean validSeatsLeftInTheaterAreGreaterThanAmountOfSeatsStillNeeded(Integer seatsLeftToBuy, List<SeatEntity> seatEntityList) {
+        return seatEntityList.size() >= seatsLeftToBuy;
+    }
+
+    private boolean seatsQueuedForDoesNotExceedTotalSeatsNeeded(FilmAlertEntity filmAlert) {
+        return filmAlert.getSeatsQueuedFor() < filmAlert.getSeatCount();
     }
 
     private List<SeatEntity> getValidSeatsFromServerFromRow3AndBack(MovieEntity showtime, SeatEntity furthestSeatOwned) {
